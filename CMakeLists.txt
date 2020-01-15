@@ -43,16 +43,21 @@ include(GNUInstallDirs)
 
 project(pastry-chef-calc VERSION 0.1.0 LANGUAGES CXX C)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # ---------------------------------------------------------------------------
 #   Qt
 # ---------------------------------------------------------------------------
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
 
-find_package(Qt5 COMPONENTS Core Sql Qml Quick REQUIRED)
+find_package(Qt5Core CONFIG REQUIRED)
+find_package(Qt5Qml CONFIG REQUIRED)
+find_package(Qt5Quick CONFIG REQUIRED)
+find_package(Qt5Sql CONFIG REQUIRED)
 
 add_subdirectory(logger)
 
@@ -78,7 +83,10 @@ target_precompile_headers(pastry-chef-calc
 target_sources(pastry-chef-calc
         PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/include/app.h
+        ${CMAKE_CURRENT_LIST_DIR}/include/database.h
 
+        ${CMAKE_CURRENT_LIST_DIR}/src/app.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/database.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
 
         ${CMAKE_CURRENT_LIST_DIR}/resources.qrc
@@ -93,9 +101,9 @@ target_link_libraries(pastry-chef-calc
         PRIVATE
 
         Qt5::Core
-        Qt5::Sql
         Qt5::Qml
         Qt5::Quick
+        Qt5::Sql
 
         avn_logger_txt_cout
         avn_logger_txt_file

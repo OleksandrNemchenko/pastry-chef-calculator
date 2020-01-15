@@ -40,7 +40,6 @@ import QtQuick.Layouts 1.5
 ApplicationWindow {
     id: application
     visible: true
-    // Application window title
     title: qsTr("Pastry Chef Calculator")
 
     Common {
@@ -48,16 +47,16 @@ ApplicationWindow {
     }
 
     function changeSelection(sel) {
-        units.visible = sel == Common.ActiveMode.Units;
-        prices.visible = sel == Common.ActiveMode.Prices;
-        receipts.visible = sel == Common.ActiveMode.Receipts;
-        calcResult.visible = sel == Common.ActiveMode.CalcResult;
+        units.visible = sel == Common.ActiveMode.Units
+        prices.visible = sel == Common.ActiveMode.Prices
+        receipts.visible = sel == Common.ActiveMode.Receipts
+        calcResult.visible = sel == Common.ActiveMode.CalcResult
 
         switch(sel){
-        case Common.ActiveMode.Units : header.text = "Единицы измерения"; break;
-        case Common.ActiveMode.Prices : header.text = "Цены"; break;
-        case Common.ActiveMode.Receipts : header.text = "Рецепты"; break;
-        case Common.ActiveMode.CalcResult : header.text = "Расчеты"; break;
+        case Common.ActiveMode.Units : header.text = qsTr("Единицы измерения"); break
+        case Common.ActiveMode.Prices : header.text = qsTr("Цены"); break
+        case Common.ActiveMode.Receipts : header.text = qsTr("Рецепты"); break
+        case Common.ActiveMode.CalcResult : header.text = qsTr("Расчеты"); break
         }
     }
 
@@ -65,6 +64,10 @@ ApplicationWindow {
 
     header: Header {
         id: header
+    }
+
+    DbStatusView {
+
     }
 
     Units {
@@ -88,6 +91,7 @@ ApplicationWindow {
     }
 
     Component.onCompleted: {
-        changeSelection(Common.ActiveMode.Units);
+        changeSelection(Common.ActiveMode.Units)
+        db.Initialize()
     }
 }

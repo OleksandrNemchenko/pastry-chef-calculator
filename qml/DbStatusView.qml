@@ -39,32 +39,50 @@ import QtQuick.Window 2.2
 import QtQuick.Layouts 1.1
 import QtQuick.Controls.Styles 1.4
 
-Item {
-    id: common
+Rectangle {
+    id: dbStatusView
+    property int margin: common.dp(5)
+    x: margin
+    y: header.y + margin
+    width: application.width - 2*margin
+    height: application.height - 2*margin
+    radius: margin
+    z: 2
 
-    enum ActiveMode {
-        Units,
-        Prices,
-        Receipts,
-        CalcResult
+    Text {
+        id: dbStatusViewText
+        anchors.fill: parent
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+        font.bold: true
+        font.pointSize: 20
+        wrapMode: Text.WordWrap
     }
 
-    enum DbMode {
-        DbInitializing,
-        DbError,
-        DbInitialized
-    }
+    Connections {
+        target: db
 
-    property int dpi: Screen.pixelDensity * 25.4
-    property int desktopDPI: 120
-    property int dip2pixels: 160
-    function dp(x) {
-        if(dpi < desktopDPI) {
-            return x;
-        } else {
-            return x * (dpi / dip2pixels);
+        onDatabaseInitialization: {
+            color = "#C0000000"
+            visible = true
+
+            dbStatusViewText.color = "#80FF80"
+            dbStatusViewText.visible = true
+            dbStatusViewText.text = qsTr("Соединение с базой данных...")
+        }
+
+        onDatabaseInitializedSuccessfully: {
+            visible = false
+            dbStatusViewText.visible = false
+        }
+
+        onDatabaseInitializationError: {
+            color = "#C0400000"
+            visible = true
+
+            dbStatusViewText.color = "#FF8080"
+            dbStatusViewText.visible = true
+            dbStatusViewText.text = errorDescription
         }
     }
-
-    property int smallButtonSide: dp(20)
 }

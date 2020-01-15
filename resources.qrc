@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="/">
-        <file>qml/main.qml</file>
+        <file>qml/Main.qml</file>
         <file>qml/Common.qml</file>
         <file>qml/Footer.qml</file>
         <file>qml/Header.qml</file>
@@ -8,6 +8,7 @@
         <file>qml/Prices.qml</file>
         <file>qml/Receipts.qml</file>
         <file>qml/CalcResult.qml</file>
+        <file>qml/DbStatusView.qml</file>
 
         <file>qml/pics/Units.svg</file>
         <file>qml/pics/Prices.svg</file>

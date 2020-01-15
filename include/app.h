@@ -6,13 +6,17 @@
 #define PASTRY_CHEF_CALCULATOR_APP_H_
 
 #include <QtCore>
-#include <QtSql>
 #include <QtQml>
 #include <QtQuick>
+#include <QtSql>
 
 #include <avn/logger/logger_txt_cout.h>
 #include <avn/logger/logger_txt_file.h>
 #include <avn/logger/logger_txt_group.h>
+
+#include <database.h>
+
+using namespace std::string_literals;
 
 namespace Logger {
     constexpr bool CLoggerThrSafe = false;
@@ -31,7 +35,7 @@ namespace Logger {
     };
 }
 
-inline Logger::CLoggerTxtGroup<
+extern Logger::CLoggerTxtGroup<
         Logger::CLoggerTxtCOut<Logger::CLoggerThrSafe, wchar_t>,
         Logger::CLoggerTxtFile<Logger::CLoggerThrSafe, wchar_t>
         > _log;
@@ -42,5 +46,7 @@ template< typename... T > void logWarning( const T&... args)  { _log(Logger::WAR
 template< typename... T > void logError(   const T&... args)  { _log(Logger::ERROR,    args...); }
 template< typename... T > void logCritical(const T&... args)  { _log(Logger::CRITICAL, args...); }
 template< typename... T > void logFatal(   const T&... args)  { _log(Logger::FATAL,    args...); }
+
+extern std::unique_ptr<PCCDatabase> _db;
 
 #endif // PASTRY_CHEF_CALCULATOR_APP_H_
