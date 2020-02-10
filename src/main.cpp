@@ -48,11 +48,6 @@ void initQML(PCCDatabaseQml *dbQmlInterface, QQmlApplicationEngine &engine)
     QQmlContext *context = engine.rootContext();    // Создаём корневой контекст
     context->setContextProperty("db", dbQmlInterface);
 
-    QObject::connect(_db.get(), &PCCDatabase::databaseInitialization, dbQmlInterface, &PCCDatabaseQml::databaseInitialization);
-    QObject::connect(_db.get(), &PCCDatabase::databaseInitializedSuccessfully, dbQmlInterface, &PCCDatabaseQml::databaseInitializedSuccessfully);
-    QObject::connect(_db.get(), &PCCDatabase::databaseInitializationError, dbQmlInterface, &PCCDatabaseQml::databaseInitializationError);
-    QObject::connect(dbQmlInterface, &PCCDatabaseQml::Initialize, _db.get(), &PCCDatabase::Initialize);
-
     const QUrl url(QStringLiteral("qrc:/qml/Main.qml"));
     engine.load(url);
 }
@@ -65,7 +60,7 @@ void initApplication(PCCDatabaseQml *dbQmlInterface, QQmlApplicationEngine &engi
 
     initLogger();
 
-    _db = std::make_unique<PCCDatabase>();
+    _db = std::make_unique<PCCDatabaseQml>();
 
     initQML(dbQmlInterface, engine);
 }
@@ -83,11 +78,17 @@ int main(int argc, char *argv[]) {
         int retCode = QGuiApplication::instance()->exec();
 
         _db.release();
+
+        return retCode;
     }
     catch(std::runtime_error &error) {
         std::wcout << "Runtime error: " << error.what() << std::endl;
+
+        return -1;
     }
     catch(...) {
         std::wcout << "Any runtime error has been happened" << std::endl;
+
+        return -2;
     }
 }

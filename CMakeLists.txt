@@ -58,6 +58,7 @@ find_package(Qt5Core CONFIG REQUIRED)
 find_package(Qt5Qml CONFIG REQUIRED)
 find_package(Qt5Quick CONFIG REQUIRED)
 find_package(Qt5Sql CONFIG REQUIRED)
+find_package(Qt5Widgets CONFIG REQUIRED)
 
 add_subdirectory(logger)
 
@@ -84,10 +85,14 @@ target_sources(pastry-chef-calc
         PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/include/app.h
         ${CMAKE_CURRENT_LIST_DIR}/include/database.h
+        ${CMAKE_CURRENT_LIST_DIR}/include/tables/metaInfo.h
+        ${CMAKE_CURRENT_LIST_DIR}/include/tables/units.h
 
         ${CMAKE_CURRENT_LIST_DIR}/src/app.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/database.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/tables/metaInfo.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/tables/units.cpp
 
         ${CMAKE_CURRENT_LIST_DIR}/resources.qrc
         )
@@ -104,6 +109,7 @@ target_link_libraries(pastry-chef-calc
         Qt5::Qml
         Qt5::Quick
         Qt5::Sql
+        Qt5::Widgets
 
         avn_logger_txt_cout
         avn_logger_txt_file

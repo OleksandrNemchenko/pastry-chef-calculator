@@ -6,4 +6,4 @@
 
 decltype(_log) _log;
 
-std::unique_ptr<PCCDatabase> _db;
+std::unique_ptr<PCCDatabaseQml> _db;
