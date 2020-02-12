@@ -10,20 +10,22 @@
 
 class PCCMetaInformation;
 class PCCUnits;
+class PCCUnitsTransform;
 
 class PCCDbTable {
 public:
-    struct Field {
+    struct TField {
         QString name;
         QString creationParameters;
     };
 
     using TTableRow = std::vector<QString>;
     using TTableData = std::vector<TTableRow>;
+    using TTableFields = std::vector<TField>;
 
     virtual const QString &TableName () const = 0;
     virtual const std::wstring &TableDescription () const = 0;
-    virtual const std::vector<Field> &TableFields () const = 0;
+    virtual const TTableFields &TableFields () const = 0;
     virtual const TTableData &TableInitialData () const { static const TTableData emptyData; return emptyData; }
     virtual void SetInterfaceVersion (size_t version) { _currentInterfaceVersion = version; }
     virtual size_t CurrentInterfaceVersion () const { return _currentInterfaceVersion; }
@@ -58,6 +60,7 @@ private:
     QSqlDatabase _database;
     std::unique_ptr<PCCMetaInformation> _metaInfo;
     std::unique_ptr<PCCUnits> _units;
+    std::unique_ptr<PCCUnitsTransform> _unitsTransform;
     int _initEventId = -1;
 
     void Initialize();

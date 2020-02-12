@@ -6,6 +6,7 @@
 #include <database.h>
 #include <tables/metaInfo.h>
 #include <tables/units.h>
+#include <tables/units-transform.h>
 
 PCCDatabase::PCCDatabase(bool initEvent) {
     if(initEvent) {
@@ -168,7 +169,10 @@ void PCCDatabase::Initialize() {
         _metaInfo = std::make_unique<PCCMetaInformation>();
         InitTable(_metaInfo, -1, false);
 
+        InitTable(_unitsTransform, _metaInfo->UnitsTransformInterfaceVersion(), true);
+
         InitTable(_units, _metaInfo->UnitsInterfaceVersion(), true);
+        _units->SetUnitsTransform(*_unitsTransform.get());
 
         emit databaseInitializedSuccessfully();
 

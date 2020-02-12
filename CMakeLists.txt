@@ -122,12 +122,14 @@ target_sources(pastry-chef-calc
         ${CMAKE_CURRENT_LIST_DIR}/include/database.h
         ${CMAKE_CURRENT_LIST_DIR}/include/tables/metaInfo.h
         ${CMAKE_CURRENT_LIST_DIR}/include/tables/units.h
+        ${CMAKE_CURRENT_LIST_DIR}/include/tables/units-transform.h
 
         ${CMAKE_CURRENT_LIST_DIR}/src/app.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/database.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/tables/metaInfo.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/tables/units.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/tables/units-transform.cpp
 
         ${META_FILES_TO_INCLUDE}
 

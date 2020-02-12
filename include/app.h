@@ -10,6 +10,10 @@
 #include <QtQuick>
 #include <QtSql>
 
+#include <array>
+#include <memory>
+#include <vector>
+
 #include <avn/logger/logger_txt_cout.h>
 #include <avn/logger/logger_txt_file.h>
 #include <avn/logger/logger_txt_group.h>
