@@ -153,7 +153,11 @@ target_link_libraries(pastry-chef-calc
         avn_logger_txt_file
         )
 
-#qt5_use_modules(pastry-chef-calc Widgets LINK_PRIVATE)
+target_compile_definitions(pastry-chef-calc
+        PRIVATE
+
+        $<$<BOOL:${DEBUG}>:DEBUG_MODE>
+        )
 
 # ---------------------------------------------------------------------------
 #   Deployment

@@ -16,10 +16,20 @@
 
 #include <database.h>
 
+static constexpr bool _debugMode =
+#ifdef DEBUG_MODE
+    true
+#else // DEBUG_MODE
+    false
+#endif // DEBUG_MODE
+    ;
+
 using namespace std::string_literals;
 
-namespace Logger {
-    constexpr bool CLoggerThrSafe = false;
+namespace ALogger {
+
+    constexpr bool ALoggerThrSafe = false;
+
     enum LoggerID {
         LOGGER_COUT = 0,
         LOGGER_FILE
@@ -35,17 +45,17 @@ namespace Logger {
     };
 }
 
-extern Logger::CLoggerTxtGroup<
-        Logger::CLoggerTxtCOut<Logger::CLoggerThrSafe, wchar_t>,
-        Logger::CLoggerTxtFile<Logger::CLoggerThrSafe, wchar_t>
+extern ALogger::ALoggerTxtGroup<
+        ALogger::ALoggerTxtCOut<ALogger::ALoggerThrSafe, wchar_t>,
+        ALogger::ALoggerTxtFile<ALogger::ALoggerThrSafe, wchar_t>
         > _log;
 
-template< typename... T > void logInfo(    const T&... args)  { _log(Logger::INFO,     args...); }
-template< typename... T > void logDebug(   const T&... args)  { _log(Logger::DEBUG,    args...); }
-template< typename... T > void logWarning( const T&... args)  { _log(Logger::WARNING,  args...); }
-template< typename... T > void logError(   const T&... args)  { _log(Logger::ERROR,    args...); }
-template< typename... T > void logCritical(const T&... args)  { _log(Logger::CRITICAL, args...); }
-template< typename... T > void logFatal(   const T&... args)  { _log(Logger::FATAL,    args...); }
+template< typename... T > void logInfo(    const T&... args)  { _log(ALogger::INFO,     args...); }
+template< typename... T > void logDebug(   const T&... args)  { _log(ALogger::DEBUG,    args...); }
+template< typename... T > void logWarning( const T&... args)  { _log(ALogger::WARNING,  args...); }
+template< typename... T > void logError(   const T&... args)  { _log(ALogger::ERROR,    args...); }
+template< typename... T > void logCritical(const T&... args)  { _log(ALogger::CRITICAL, args...); }
+template< typename... T > void logFatal(   const T&... args)  { _log(ALogger::FATAL,    args...); }
 
 extern std::unique_ptr<PCCDatabaseQml> _db;
 

@@ -19,26 +19,32 @@ void initLogger() {
     std::wstring logFileName = settings.value( "loggerFilePath", QString::fromStdWString(defaultLogFileName)).toString().toStdWString();
     const std::locale utf8_locale = std::locale(std::locale(), new std::codecvt_utf8<wchar_t>());
 
-    auto &loggerCOut = _log.Logger<Logger::LOGGER_COUT>();
-    auto &loggerFile = _log.Logger<Logger::LOGGER_FILE>();
+    auto &loggerCOut = _log.logger<ALogger::LOGGER_COUT>();
+    auto &loggerFile = _log.logger<ALogger::LOGGER_FILE>();
 
-    loggerFile.OpenFile(logFileName);
-    loggerFile.Imbue( utf8_locale );
+    loggerFile.openFile(logFileName);
+    loggerFile.imbue( utf8_locale );
 
-    auto addLevel = [&loggerCOut, &loggerFile]( Logger::LogLevel logLevel, const std::wstring &levelName, bool enableCOut, bool enableFile) {
-        loggerCOut.AddLevelDescr(logLevel, levelName);
-        loggerFile.AddLevelDescr(logLevel, levelName);
-        if(enableCOut)  loggerCOut.EnableLevel(logLevel);
-        if(enableFile)  loggerFile.EnableLevel(logLevel);
+    auto addLevel = [&loggerCOut, &loggerFile]( ALogger::LogLevel logLevel, const std::wstring &levelName, bool enableCOut, bool enableFile) {
+        loggerCOut.addLevelDescr(logLevel, levelName);
+        loggerFile.addLevelDescr(logLevel, levelName);
+        if(enableCOut)  loggerCOut.enableLevel(logLevel);
+        if(enableFile)  loggerFile.enableLevel(logLevel);
     };
-    addLevel(Logger::INFO,     L"INFO"s,     true,  true);
-    addLevel(Logger::DEBUG,    L"DEBUG"s,    true,  true);
-    addLevel(Logger::WARNING,  L"WARNING"s,  true,  true);
-    addLevel(Logger::ERROR,    L"ERROR"s,    true,  true);
-    addLevel(Logger::CRITICAL, L"CRITICAL"s, true,  true);
-    addLevel(Logger::FATAL,    L"FATAL"s,    true,  true);
 
-    loggerCOut(Logger::INFO, L"Log file: "s, logFileName);
+    addLevel(ALogger::INFO,     L"INFO"s,     true,       true      );
+    addLevel(ALogger::DEBUG,    L"DEBUG"s,    _debugMode, _debugMode);
+    addLevel(ALogger::WARNING,  L"WARNING"s,  _debugMode, true      );
+    addLevel(ALogger::ERROR,    L"ERROR"s,    _debugMode, true      );
+    addLevel(ALogger::CRITICAL, L"CRITICAL"s, true,       true      );
+    addLevel(ALogger::FATAL,    L"FATAL"s,    true,       true      );
+
+    if (_debugMode){
+        loggerCOut.disableTasks();
+        logDebug("Debug mode");
+    }
+
+    loggerCOut(ALogger::INFO, L"Log file: "s, logFileName);
 
     logInfo(L"Git hash: "s, COMPILE_GIT_HASH);
 }

@@ -158,7 +158,7 @@ void PCCDatabase::InitTable(std::unique_ptr<TTable> &table, size_t detectedVersi
 }
 
 void PCCDatabase::Initialize() {
-//    auto logTask = _log.AddTask();
+    auto logTask = _log.addTask();
 
     logInfo(L"Initialize database"s);
     emit databaseInitialization();
@@ -173,7 +173,7 @@ void PCCDatabase::Initialize() {
 
         emit databaseInitializedSuccessfully();
 
-//        logTask.Succeeded();
+        logTask.succeeded();
     }
     catch(std::wstring errDescr) {
         logError(L"Unable to open database. "s, errDescr, L" Last SQL error: "s, _database.lastError().text().toStdWString());
@@ -191,11 +191,9 @@ PCCDatabase::TExecuteQuery PCCDatabase::ExecuteQuery(std::wstring &&descr, QStri
     result = false;
 
     logDebug( descr, L" query : "s, query_str.toStdWString() );
-    qWarning("%s : %s", QString::fromStdWString(descr).toStdString().c_str(), query_str.toStdString().c_str());
 
     bool exec = query.exec( query_str );
     if( !exec || ( !allow_error && query.lastError().type() != QSqlError::NoError )){
-        qWarning("ERROR : %s", query.lastError().text().toStdString().c_str());
         logError( L"SQL error : "s, query.lastError().text().toStdWString() );
         return res;
     }
