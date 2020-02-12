@@ -21,7 +21,7 @@ const std::vector<PCCUnits::Field> &PCCUnits::TableFields() const {
             {"ID", "INTEGER UNIQUE"},
             {"Name", "TEXT NOT NULL"},
             {"Type", "INTEGER"},
-            {"Default", "BOOLEAN"}
+            {"DefaultUnit", "INTEGER"}
     };
 
     return fields;

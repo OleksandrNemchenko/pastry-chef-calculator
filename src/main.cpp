@@ -5,7 +5,6 @@
 void initLogger() {
     QSettings settings;
     std::error_code errorCode;
-
     std::wstring defaultLogFilePath = std::filesystem::temp_directory_path(errorCode).wstring();
 
     if( errorCode )
@@ -23,7 +22,8 @@ void initLogger() {
     auto &loggerFile = _log.logger<ALogger::LOGGER_FILE>();
 
     loggerFile.openFile(logFileName);
-    loggerFile.imbue( utf8_locale );
+
+    _log.imbue(utf8_locale);
 
     auto addLevel = [&loggerCOut, &loggerFile]( ALogger::LogLevel logLevel, const std::wstring &levelName, bool enableCOut, bool enableFile) {
         loggerCOut.addLevelDescr(logLevel, levelName);

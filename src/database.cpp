@@ -54,7 +54,7 @@ void PCCDatabase::InitTable(std::unique_ptr<TTable> &table, size_t detectedVersi
         table = std::make_unique<TTable>();
     }
 
-    logInfo(L"Initialize "s, table->TableDescription());
+    logDebug(L"Initialize "s, table->TableDescription());
 
     table->SetInterfaceVersion(detectedVersion);
 
@@ -123,7 +123,6 @@ void PCCDatabase::InitTable(std::unique_ptr<TTable> &table, size_t detectedVersi
                 query += ")";
             }
 
-            qWarning("Query: %s", query.toStdString().c_str());
             auto [fillInitDataSuccess, fillInitDataQuery] = ExecuteQuery(
                 L"Fill initial data to the "s + table->TableDescription() + L" table"s, query, false );
 
