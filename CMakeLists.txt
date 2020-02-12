@@ -35,13 +35,18 @@
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
 include(GNUInstallDirs)
+include(QtCommon)
 
 # ---------------------------------------------------------------------------
 #   Project
 # ---------------------------------------------------------------------------
 
 project(pastry-chef-calc VERSION 0.1.0 LANGUAGES CXX C)
+fix_project_version()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -50,9 +55,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #   Qt
 # ---------------------------------------------------------------------------
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
+
+# Set additional project information
+set(COMPANY "AVN")
+set(COPYRIGHT "Copyright (c) 2020 Oleksandr Nemchenko. All rights reserved.")
+set(IDENTIFIER "com.avn.pastry-calc")
+
+add_project_meta(META_FILES_TO_INCLUDE)
 
 find_package(Qt5Core CONFIG REQUIRED)
 find_package(Qt5Qml CONFIG REQUIRED)
@@ -60,9 +69,32 @@ find_package(Qt5Quick CONFIG REQUIRED)
 find_package(Qt5Sql CONFIG REQUIRED)
 find_package(Qt5Widgets CONFIG REQUIRED)
 
+# ---------------------------------------------------------------------------
+#   Build type
+# ---------------------------------------------------------------------------
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release")
+    message(STATUS "Build type not specified: Use Release by default")
+endif(NOT CMAKE_BUILD_TYPE)
+
+string(TOLOWER "${CMAKE_BUILD_TYPE}" BUILD_TYPE_INSENSITIVE)
+
+if(BUILD_TYPE_INSENSITIVE STREQUAL "debug")
+    message(STATUS "Debug mode")
+    set(DEBUG ON CACHE BOOL "Debug/Release mode")
+else()
+    message(STATUS "Release mode")
+    set(DEBUG OFF CACHE BOOL "Debug/Release mode")
+endif()
+
+# ---------------------------------------------------------------------------
+#   Source
+# ---------------------------------------------------------------------------
+
 add_subdirectory(logger)
 
-add_executable(pastry-chef-calc)
+add_executable(pastry-chef-calc ${OS_BUNDLE})
 
 execute_process(
         COMMAND git rev-parse HEAD
@@ -81,8 +113,11 @@ target_precompile_headers(pastry-chef-calc
         ${CMAKE_CURRENT_LIST_DIR}/include/app.h
         )
 
+set(QML_DIR ${CMAKE_CURRENT_LIST_DIR}/qml)
+
 target_sources(pastry-chef-calc
         PRIVATE
+
         ${CMAKE_CURRENT_LIST_DIR}/include/app.h
         ${CMAKE_CURRENT_LIST_DIR}/include/database.h
         ${CMAKE_CURRENT_LIST_DIR}/include/tables/metaInfo.h
@@ -94,7 +129,10 @@ target_sources(pastry-chef-calc
         ${CMAKE_CURRENT_LIST_DIR}/src/tables/metaInfo.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/tables/units.cpp
 
+        ${META_FILES_TO_INCLUDE}
+
         ${CMAKE_CURRENT_LIST_DIR}/resources.qrc
+
         )
 
 target_include_directories(pastry-chef-calc
@@ -114,3 +152,25 @@ target_link_libraries(pastry-chef-calc
         avn_logger_txt_cout
         avn_logger_txt_file
         )
+
+#qt5_use_modules(pastry-chef-calc Widgets LINK_PRIVATE)
+
+# ---------------------------------------------------------------------------
+#   Deployment
+# ---------------------------------------------------------------------------
+
+if(NOT DEBUG)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+        message(STATUS "MacOS target OS")
+        add_custom_command(TARGET pastry-chef-calc POST_BUILD
+                COMMAND echo macdeployqt pastry-chef-calc.app -qmldir=${QML_DIR} -dmg
+                COMMAND macdeployqt pastry-chef-calc.app -qmldir=${QML_DIR} -dmg
+                )
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "MSYS")
+        message(STATUS "Windows target OS")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Android")
+        message(STATUS "Android target OS")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        message(STATUS "Linux target OS")
+    endif()
+endif()
