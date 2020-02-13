@@ -168,8 +168,10 @@ target_compile_definitions(pastry-chef-calc
 if(NOT DEBUG)
     if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         message(STATUS "MacOS target OS")
-        add_custom_command(TARGET pastry-chef-calc POST_BUILD
-                COMMAND echo macdeployqt pastry-chef-calc.app -qmldir=${QML_DIR} -dmg
+        add_custom_target(pastry-chef-calc-macdeploy
+                COMMENT deploy for MacOS
+                WORKING_DIRECTORY ${CMAKE_BUILD_DIR}
+                DEPENDS pastry-chef-calc
                 COMMAND macdeployqt pastry-chef-calc.app -qmldir=${QML_DIR} -dmg
                 )
     elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "MSYS")
