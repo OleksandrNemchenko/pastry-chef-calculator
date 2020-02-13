@@ -67,7 +67,7 @@ ApplicationWindow {
     }
 
     DbStatusView {
-
+        id: dbStatusView
     }
 
     Units {
@@ -92,6 +92,6 @@ ApplicationWindow {
 
     Component.onCompleted: {
         changeSelection(Common.ActiveMode.Units)
-        db.Initialize()
+        dbStatusView.showDbState(hasDbError, lastDbError)
     }
 }

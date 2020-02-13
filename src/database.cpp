@@ -8,14 +8,15 @@
 #include <tables/units.h>
 #include <tables/units-transform.h>
 
-PCCDatabase::PCCDatabase(bool initEvent) {
-    if(initEvent) {
-        _initEventId = QEvent::registerEventType();
-    }
+PCCDatabase::PCCDatabase() {
+    _metaInfo = std::make_unique<PCCMetaInformation>();
+    _units = std::make_unique<PCCUnits>();
+    _unitsTransform = std::make_unique<PCCUnitsTransform>();
+
+    Initialize();
 }
 
 PCCDatabase::~PCCDatabase() {
-
 }
 
 void PCCDatabase::InitConnection() {
@@ -38,23 +39,18 @@ void PCCDatabase::InitConnection() {
 
     _database = QSqlDatabase::addDatabase(dbType);
     if(!_database.isValid())
-        throw QString("Invalid database type.");
+        throw QString("Invalid database type");
 
     _database.setHostName(hostName);
     _database.setDatabaseName(databaseName);
     _database.setUserName(userName);
     _database.setPassword(password);
     if(!_database.open())
-        throw QString("Unable to open database.");
+        throw QString("Unable to open database");
 }
 
 template<typename TTable>
-void PCCDatabase::InitTable(std::unique_ptr<TTable> &table, size_t detectedVersion, bool initPointer) {
-    if(initPointer) {
-        table.reset();
-        table = std::make_unique<TTable>();
-    }
-
+void PCCDatabase::InitTable(std::unique_ptr<TTable> &table, size_t detectedVersion) {
     logDebug(L"Initialize "s, table->TableDescription());
 
     table->SetInterfaceVersion(detectedVersion);
@@ -161,27 +157,22 @@ void PCCDatabase::Initialize() {
     auto logTask = _log.addTask();
 
     logInfo(L"Initialize database"s);
-    emit databaseInitialization();
 
     try {
         InitConnection();
 
-        _metaInfo = std::make_unique<PCCMetaInformation>();
-        InitTable(_metaInfo, -1, false);
+        InitTable(_metaInfo, -1);
 
-        InitTable(_unitsTransform, _metaInfo->UnitsTransformInterfaceVersion(), true);
+        InitTable(_unitsTransform, _metaInfo->UnitsTransformInterfaceVersion());
 
-        InitTable(_units, _metaInfo->UnitsInterfaceVersion(), true);
+        InitTable(_units, _metaInfo->UnitsInterfaceVersion());
         _units->SetUnitsTransform(*_unitsTransform.get());
-
-        emit databaseInitializedSuccessfully();
 
         logTask.succeeded();
     }
     catch(QString errDescr) {
-        logError(L"Unable to open database. "s, errDescr, L" Last SQL error: "s, _database.lastError().text());
-
-        emit databaseInitializationError(QString("%1\nSQL error : %2"). arg(errDescr). arg(_database.lastError().text()));
+        _lastError = _database.lastError().text();
+        logError(L"Unable to open database. "s, errDescr, L" Last SQL error: "s, _lastError);
     }
 }
 
@@ -202,48 +193,4 @@ PCCDatabase::TExecuteQuery PCCDatabase::ExecuteQuery(QString &&descr, QString qu
     result = true;
 
     return res;
-}
-
-bool PCCDatabase::event(QEvent *event) {
-    if(event->type() == _initEventId) {
-        Initialize();
-        return true;
-    }
-    return QObject::event(event);
-}
-
-PCCDatabaseQml::~PCCDatabaseQml(){
-    _db.release();
-
-    _dbThread.quit();
-
-    constexpr auto waitThreadMSec = 1000;
-    _dbThread.wait(waitThreadMSec);
-
-    if (_dbThread.isRunning()) {
-        logError(L"Unable to terminate database thread. Call QThread::terminate()"s);
-        _dbThread.terminate();
-    }
-}
-
-void PCCDatabaseQml::Initialize() {
-    connect(&_dbThread, &QThread::finished, this, &QObject::deleteLater);
-
-    _db = std::make_unique<PCCDatabase>(true);
-    _db->moveToThread(&_dbThread);
-    _dbThread.start(QThread::LowPriority);
-
-    while(!_dbThread.isRunning()) {
-        QThread::currentThread()->yieldCurrentThread();
-    }
-
-    QObject::connect(_db.get(), &PCCDatabase::databaseInitialization, this, &PCCDatabaseQml::databaseInitialization);
-    QObject::connect(_db.get(), &PCCDatabase::databaseInitializedSuccessfully, this, &PCCDatabaseQml::databaseInitializedSuccessfully);
-    QObject::connect(_db.get(), &PCCDatabase::databaseInitializationError, this, &PCCDatabaseQml::databaseInitializationError);
-
-    if(_db->InitEventId() == -1) {
-        logCritical(L"Unable to initialize database event"s);
-    }
-
-    QCoreApplication::postEvent(_db.get(), new QEvent(static_cast<QEvent::Type>(_db->InitEventId())) );
 }

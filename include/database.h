@@ -39,43 +39,47 @@ class PCCDatabase : public QObject {
     Q_OBJECT
 
 public:
-    PCCDatabase(bool initEvent);
-    ~PCCDatabase() override;
+    PCCDatabase();
+    ~PCCDatabase();
+    PCCDatabase(const PCCDatabase&) = delete;
+    PCCDatabase(PCCDatabase&&) = delete;
+    PCCDatabase& operator=(const PCCDatabase&) = delete;
+    PCCDatabase& operator=(PCCDatabase&&) = delete;
 
     using TExecuteQuery = QPair<bool, QSqlQuery>;
     TExecuteQuery ExecuteQuery(QString &&descr, QString query_str, bool allow_error = false ) const;
 
-    constexpr static size_t InterfaceVersion() { return 1; }
-    int InitEventId() const { return _initEventId; }
+    constexpr static size_t InterfaceVersion()  { return 1; }
 
-signals:
-    void databaseInitialization();
-    void databaseInitializedSuccessfully();
-    void databaseInitializationError(QString errorDescription);
+    bool hasDbError() const                     { return !_lastError.isEmpty(); }
+    const QString& lastDbError() const          { return _lastError; }
 
-protected:
-    bool event(QEvent *event) override;
+    PCCUnits& units()                           { return *_units.get(); }
 
 private:
     QSqlDatabase _database;
     std::unique_ptr<PCCMetaInformation> _metaInfo;
     std::unique_ptr<PCCUnits> _units;
     std::unique_ptr<PCCUnitsTransform> _unitsTransform;
-    int _initEventId = -1;
+    QString _lastError;
 
     void Initialize();
     void InitConnection();
 
     template<typename TTable>
-    void InitTable(std::unique_ptr<TTable> &table, size_t neededVersion, bool initPointer = true);
+    void InitTable(std::unique_ptr<TTable> &table, size_t neededVersion);
 
 };
-
+/*
 class PCCDatabaseQml : public QObject {
     Q_OBJECT
 
 public:
+    PCCDatabaseQml();
     ~PCCDatabaseQml();
+
+    PCCDatabase &dataBase() { return *_db.get(); }
+    QAbstractListModel* unitsModel();
 
 signals:
     void databaseInitialization();
@@ -89,5 +93,5 @@ private:
     std::unique_ptr<PCCDatabase> _db;
     QThread _dbThread;
 };
-
+*/
 #endif //PASTRY_CHEF_CALCULATOR_DATABASE_H_

@@ -61,6 +61,6 @@ template< typename... T > void logError(   const T&... args)  { _log(ALogger::ER
 template< typename... T > void logCritical(const T&... args)  { _log(ALogger::CRITICAL, args...); }
 template< typename... T > void logFatal(   const T&... args)  { _log(ALogger::FATAL,    args...); }
 
-extern std::unique_ptr<PCCDatabaseQml> _db;
+extern std::unique_ptr<PCCDatabase> _db;
 
 #endif // PASTRY_CHEF_CALCULATOR_APP_H_

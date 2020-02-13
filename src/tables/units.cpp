@@ -44,14 +44,30 @@ const PCCUnits::TTableData &PCCUnits::TableInitialData() const {
 }
 
 void PCCUnits::SetTableData(bool previouslyInitializedData, PCCDbTable::TTableData &&table) {
+
+    beginResetModel();
+    _units.clear();
+    endResetModel();
+
     switch (_currentInterfaceVersion) {
         case 1 : SetTableDataInterface1 (previouslyInitializedData, std::move (table)); break;
         default: assert(false && "Unsupported interface");  break;
     }
+
 }
 
 void PCCUnits::SetTableDataInterface1(bool previouslyInitializedData, PCCDbTable::TTableData &&table) {
     (void) previouslyInitializedData;
+    size_t correctRows = 0;
+
+    for (const TTableRow &row : table) {
+        int type = row[2].toInt();
+
+        if (type >= static_cast<int>(EUnitType::FIRST) && type < static_cast<int>(EUnitType::UNITS_AMOUNT))
+            ++correctRows;
+    }
+
+    beginInsertRows(QModelIndex(), 0, correctRows);
 
     for (const TTableRow &row : table) {
         SUnitData unitData;
@@ -60,13 +76,24 @@ void PCCUnits::SetTableDataInterface1(bool previouslyInitializedData, PCCDbTable
         unitData._name = row[1];
         unitData._default = row[3].toInt() != 0;
 
-        int unitType = row[2].toInt();
+        int type = row[2].toInt();
 
-        if (unitType >= static_cast<int>(EUnitType::UNITS_AMOUNT))
-            logError (L"Unsupported unit type "s, unitType);
-        else
-            _units[unitType].emplace_back(std::move(unitData));
+        if (type >= static_cast<int>(EUnitType::UNITS_AMOUNT)) {
+            logError (L"Unsupported unit type "s, type);
+            continue;
+        }
+
+        unitData._type = static_cast<EUnitType>(type);
+
+        logDebug(L"Loaded unit : \""s, unitData._name, L"\" ("s, unitData._dbId, L") : type = "s, type,
+                 unitData._default ? L", default"s : L""s);
+
+        _units.emplace_back(std::move(unitData));
     }
+
+    endInsertRows();
+
+    emit dataChanged(index(0, 0), index(correctRows, 0));
 }
 
 void PCCUnits::SetUnitsTransform(const PCCUnitsTransform& unitsTransforms) {
@@ -79,21 +106,18 @@ void PCCUnits::SetUnitsTransform(const PCCUnitsTransform& unitsTransforms) {
             EUnitType elemType;
             TUnitsArray::iterator itValue;
 
-            for (size_t type = static_cast<size_t>(EUnitType::FIRST); type < static_cast<size_t>(EUnitType::UNITS_AMOUNT); ++type)
-                for (itValue = _units[type].begin(); itValue != _units[type].end(); ++itValue) {
-                    if (itValue->_dbId == id) {
-                        elemType = static_cast<EUnitType>(type);
-                        return std::tuple(true, elemType, itValue);
-                    }
-                }
+            for (auto itUnit = _units.begin(); itUnit != _units.end(); ++itUnit) {
+                if (itUnit->_dbId == id)
+                    return itUnit;
+            }
 
-            return std::tuple(false, EUnitType::UNITS_AMOUNT, _units[0].end());
+            return _units.end();
         };
 
-        auto [resFrom, elemTypeFrom, itValueFrom] = tryToFind(transform._fromType);
-        auto [resTo,   elemTypeTo,   itValueTo]   = tryToFind(transform._toType  );
+        auto itValueFrom = tryToFind(transform._fromType);
+        auto itValueTo   = tryToFind(transform._toType  );
 
-        if (!resFrom || !resTo) {
+        if (itValueFrom == _units.end() || itValueTo == _units.end()) {
             logError(L"Incorrect units transformation : ID = "s, transform._dbId,
                      L", from value = "s, transform._fromValue,
                      L", from type = "s, transform._fromType,
@@ -110,6 +134,50 @@ void PCCUnits::SetUnitsTransform(const PCCUnitsTransform& unitsTransforms) {
 
         itValueFrom->_transform.emplace_back(std::move(directTransform));
         itValueTo->_transform.emplace_back(std::move(reverseTransform));
-
     }
+}
+
+int PCCUnits::rowCount(const QModelIndex &parent) const
+{
+    return _units.size();
+}
+
+QVariant PCCUnits::data(const QModelIndex &index, int role) const
+{
+    if (!index.isValid() || index.row() >= _units.size())
+        return QVariant();
+
+    const SUnitData &unit = _units.at(index.row());
+
+    switch (role) {
+        case static_cast<int>(EUnitRoles::TYPE) :       return typeDescription(unit._type);
+        case static_cast<int>(EUnitRoles::NAME) :       return unit._name;
+        case static_cast<int>(EUnitRoles::IS_DEFAULT) : return unit._default;
+        default: assert(false && "Unsupported unit type"); return QString();
+    }
+}
+
+QHash<int, QByteArray> PCCUnits::roleNames() const
+{
+    static const QHash<int, QByteArray> roles{
+            {static_cast<int>(EUnitRoles::TYPE), "type"},
+            {static_cast<int>(EUnitRoles::NAME), "name"},
+            {static_cast<int>(EUnitRoles::IS_DEFAULT), "isDefault"}
+    };
+
+    return roles;
+}
+
+/* static */ const QString& PCCUnits::typeDescription(EUnitType unitType)
+{
+    static const std::array<QString, static_cast<size_t>(EUnitType::UNITS_AMOUNT)> description{
+        tr("Денежная единица"), // EUnitType::CURRENCY
+        tr("Вес"),              // EUnitType::WEIGHT
+        tr("Количество"),       // EUnitType::VOLUME
+        tr("Штука"),            // EUnitType::PIECE
+    };
+
+    assert(static_cast<size_t>(unitType) < static_cast<size_t>(EUnitType::UNITS_AMOUNT));
+
+    return description[static_cast<size_t>(unitType)];
 }

@@ -40,8 +40,9 @@ import QtQuick.Layouts 1.1
 import QtQuick.Controls.Styles 1.4
 
 Rectangle {
-    id: dbStatusView
     property int margin: common.dp(5)
+
+    id: dbStatusView
     x: margin
     y: header.y + margin
     width: application.width - 2*margin
@@ -59,30 +60,18 @@ Rectangle {
         wrapMode: Text.WordWrap
     }
 
-    Connections {
-        target: db
-
-        onDatabaseInitialization: {
-            color = "#C0000000"
-            visible = true
-
-            dbStatusViewText.color = "#80FF80"
-            dbStatusViewText.visible = true
-            dbStatusViewText.text = qsTr("Соединение с базой данных...")
-        }
-
-        onDatabaseInitializedSuccessfully: {
+    function showDbState(hasDbError, lastDbError)
+    {
+        if (!hasDbError) {
             visible = false
             dbStatusViewText.visible = false
-        }
-
-        onDatabaseInitializationError: {
+        } else {
             color = "#C0400000"
             visible = true
 
             dbStatusViewText.color = "#FF8080"
             dbStatusViewText.visible = true
-            dbStatusViewText.text = errorDescription
+            dbStatusViewText.text = qsTr("Ошибка запуска приложения:\n") + lastDbError
         }
     }
 }

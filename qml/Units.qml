@@ -42,55 +42,6 @@ import QtQuick.Controls.Styles 1.4
 Rectangle {
     anchors.fill: parent
 
-    ListModel {
-        id: unitsListData
-
-        ListElement {
-            text: "кг"
-        }
-
-        ListElement {
-            text: "г"
-        }
-
-        ListElement {
-            text: "мл"
-        }
-
-        ListElement {
-            text: "л"
-        }
-
-        ListElement {
-            text: "шт"
-        }
-
-        ListElement {
-            text: "ч. л."
-        }
-
-        ListElement {
-            text: "ст. л."
-        }
-    }
-
-    ListModel {
-        id: unitsConnectionData
-
-        ListElement {
-            from: "кг"
-            to: "г"
-        }
-
-        ListElement {
-            from: "кг"
-            to: "шт"
-        }
-        ListElement {
-            from: "г"
-            to: "ч. л."
-        }
-    }
     ListView {
         id: view
         z: 1
@@ -98,7 +49,9 @@ Rectangle {
         anchors.margins: 10
         anchors.fill: parent
         spacing: 10
-        model: unitsListData
+        model: PCCUnits
+
+        ScrollBar.vertical: ScrollBar {}
 
         delegate: Item {
             id: listDelegate
@@ -110,7 +63,7 @@ Rectangle {
                     id: text1
                     anchors.left: parent.left
                     renderType: Text.NativeRendering
-                    text: model.text
+                    text: type + " : " + name + "; " + isDefault
                 }
 
                 Image {
@@ -137,19 +90,6 @@ Rectangle {
                         anchors.fill: parent
                         onClicked: {}
                     }
-                }
-
-                Text {
-                    x: 20
-                    id: text2
-                    anchors.top: text1.bottom
-                    text: model.text + " = 1000 г"
-                }
-                Text {
-                    x: 20
-                    id: text3
-                    anchors.top: text2.bottom
-                    text: model.text + " = 1.23 мл"
                 }
         }
     }
