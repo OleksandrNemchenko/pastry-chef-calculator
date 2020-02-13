@@ -4,18 +4,9 @@
 
 void initLogger() {
     QSettings settings;
-    std::error_code errorCode;
-    std::wstring defaultLogFilePath = std::filesystem::temp_directory_path(errorCode).wstring();
-
-    if( errorCode )
-        defaultLogFilePath = L""s;
-
-    std::wstring defaultLogFileName = defaultLogFilePath +
-                                      QCoreApplication::organizationName().toStdWString() +
-                                      L"_"s + QCoreApplication::applicationName().toStdWString() +
-                                      L".log"s;
-
-    std::wstring logFileName = settings.value( "loggerFilePath", QString::fromStdWString(defaultLogFileName)).toString().toStdWString();
+    QString defaultLogFilePath = QDir::tempPath();
+    QString defaultLogFileName = QString("%1%2_%3.log"). arg(defaultLogFilePath). arg(QCoreApplication::organizationName()). arg(QCoreApplication::applicationName());
+    QString logFileName = settings.value("loggerFilePath", defaultLogFileName).toString();
     const std::locale utf8_locale = std::locale(std::locale(), new std::codecvt_utf8<wchar_t>());
 
     auto &loggerCOut = _log.logger<ALogger::LOGGER_COUT>();

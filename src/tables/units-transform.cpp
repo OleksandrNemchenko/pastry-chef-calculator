@@ -11,8 +11,8 @@ const QString &PCCUnitsTransform::TableName() const {
     return name;
 }
 
-const std::wstring &PCCUnitsTransform::TableDescription() const {
-    static const std::wstring descr{L"units transformation coefficients"s};
+const QString &PCCUnitsTransform::TableDescription() const {
+    static const QString descr{"units transformation coefficients"};
     return descr;
 }
 

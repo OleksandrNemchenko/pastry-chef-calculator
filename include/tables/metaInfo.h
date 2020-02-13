@@ -15,7 +15,7 @@ public:
     using TPtr = std::unique_ptr<PCCMetaInformation>;
 
     const QString &TableName() const override;
-    const std::wstring &TableDescription() const override;
+    const QString &TableDescription() const override;
     const TTableFields &TableFields() const override;
     const TTableData &TableInitialData() const override;
     void SetTableData(bool previouslyInitializedData, TTableData &&table) override;
@@ -25,8 +25,8 @@ public:
     size_t UnitsTransformInterfaceVersion() const   { return _unitsTransformInterfaceVersion; }
 
 private:
-    std::wstring _gitHash;
-    std::wstring _buildTimestamp;
+    QString _gitHash;
+    QString _buildTimestamp;
     size_t _dbInterfaceVersion;
     size_t _unitsInterfaceVersion;
     size_t _unitsTransformInterfaceVersion;

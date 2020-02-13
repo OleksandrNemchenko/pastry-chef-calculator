@@ -22,7 +22,7 @@ public:
     using TUnitsTransformArray = std::vector<SUnitTransform>;
 
     const QString &TableName() const override;
-    const std::wstring &TableDescription() const override;
+    const QString &TableDescription() const override;
     const TTableFields &TableFields() const override;
     const TTableData &TableInitialData() const override;
     void SetTableData(bool previouslyInitializedData, TTableData &&table) override;

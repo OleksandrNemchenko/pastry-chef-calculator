@@ -12,8 +12,8 @@ const QString &PCCUnits::TableName() const {
     return name;
 }
 
-const std::wstring &PCCUnits::TableDescription() const {
-    static const std::wstring descr{L"units"s};
+const QString &PCCUnits::TableDescription() const {
+    static const QString descr{"units"};
     return descr;
 }
 
@@ -57,7 +57,7 @@ void PCCUnits::SetTableDataInterface1(bool previouslyInitializedData, PCCDbTable
         SUnitData unitData;
 
         unitData._dbId = row[0].toULongLong();
-        unitData._name = row[1].toStdWString();
+        unitData._name = row[1];
         unitData._default = row[3].toInt() != 0;
 
         int unitType = row[2].toInt();
@@ -65,7 +65,7 @@ void PCCUnits::SetTableDataInterface1(bool previouslyInitializedData, PCCDbTable
         if (unitType >= static_cast<int>(EUnitType::UNITS_AMOUNT))
             logError (L"Unsupported unit type "s, unitType);
         else
-            _units[unitType].push_back(std::move(unitData));
+            _units[unitType].emplace_back(std::move(unitData));
     }
 }
 

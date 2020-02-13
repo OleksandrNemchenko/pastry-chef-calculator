@@ -8,11 +8,11 @@
 #include <tables/units-transform.h>
 
 namespace {
-    static const std::wstring gitHashField{L"GitHash"s};
-    static const std::wstring buildTimestampField{L"BuildTimestamp"s};
-    static const std::wstring databaseInterfaceVersionField{L"DatabaseInterfaceVersion"s};
-    static const std::wstring unitsInterfaceVersionField{L"UnitsInterfaceVersion"s};
-    static const std::wstring unitsTransformInterfaceVersionField{L"UnitsTransformInterfaceVersion"s};
+    static const QString gitHashField{"GitHash"};
+    static const QString buildTimestampField{"BuildTimestamp"};
+    static const QString databaseInterfaceVersionField{"DatabaseInterfaceVersion"};
+    static const QString unitsInterfaceVersionField{"UnitsInterfaceVersion"};
+    static const QString unitsTransformInterfaceVersionField{"UnitsTransformInterfaceVersion"};
 }   // namespace
 
 const QString &PCCMetaInformation::TableName() const {
@@ -21,8 +21,8 @@ const QString &PCCMetaInformation::TableName() const {
     return name;
 }
 
-const std::wstring &PCCMetaInformation::TableDescription() const {
-    static const std::wstring descr{L"meta data information"s};
+const QString &PCCMetaInformation::TableDescription() const {
+    static const QString descr{"meta data information"};
     return descr;
 }
 
@@ -37,11 +37,11 @@ const PCCMetaInformation::TTableFields &PCCMetaInformation::TableFields() const 
 
 const PCCDbTable::TTableData &PCCMetaInformation::TableInitialData() const {
     static const TTableData initialData = {
-            { QString::fromStdWString(gitHashField), QString::fromLatin1(COMPILE_GIT_HASH) },
-            { QString::fromStdWString(buildTimestampField), QString::fromLatin1(__DATE__ " " __TIME__) },
-            { QString::fromStdWString(databaseInterfaceVersionField), QString::number(PCCDatabase::InterfaceVersion()) },
-            { QString::fromStdWString(unitsInterfaceVersionField), QString::number(PCCUnits::MaxInterfaceVersion()) },
-            { QString::fromStdWString(unitsTransformInterfaceVersionField), QString::number(PCCUnitsTransform::MaxInterfaceVersion()) },
+            { gitHashField, QString::fromLatin1(COMPILE_GIT_HASH) },
+            { buildTimestampField, QString::fromLatin1(__DATE__ " " __TIME__) },
+            { databaseInterfaceVersionField, QString::number(PCCDatabase::InterfaceVersion()) },
+            { unitsInterfaceVersionField, QString::number(PCCUnits::MaxInterfaceVersion()) },
+            { unitsTransformInterfaceVersionField, QString::number(PCCUnitsTransform::MaxInterfaceVersion()) },
     };
 
     return initialData;
@@ -51,8 +51,8 @@ void PCCMetaInformation::SetTableData(bool previouslyInitializedData, PCCDbTable
     for (const auto &row : table) {
         constexpr auto attribId = 0;
         constexpr auto valueId = 1;
-        std::wstring attrib = row[attribId].toStdWString();
-        std::wstring value = row[valueId].toStdWString();
+        QString attrib{row[attribId]};
+        QString value{row[valueId]};
 
         if (attrib == gitHashField) {
             _gitHash = value;
@@ -63,15 +63,15 @@ void PCCMetaInformation::SetTableData(bool previouslyInitializedData, PCCDbTable
             if (previouslyInitializedData)
                 logInfo(L"Database's build timestamp : "s, _buildTimestamp);
         } else if (attrib == databaseInterfaceVersionField) {
-            _dbInterfaceVersion = std::stol(value);
+            _dbInterfaceVersion = value.toLongLong();
             if (previouslyInitializedData)
                 logInfo(L"Database's interface : "s, _dbInterfaceVersion, L", current one : "s, PCCDatabase::InterfaceVersion());
         } else if (attrib == unitsInterfaceVersionField) {
-            _unitsInterfaceVersion = std::stol(value);
+            _unitsInterfaceVersion = value.toLongLong();
             if (previouslyInitializedData)
                 logInfo(L"Units's interface : "s, _unitsInterfaceVersion);
         } else if (attrib == unitsTransformInterfaceVersionField) {
-            _unitsTransformInterfaceVersion = std::stol(value);
+            _unitsTransformInterfaceVersion = value.toLongLong();
             if (previouslyInitializedData)
                 logInfo(L"Units Transform's interface : "s, _unitsTransformInterfaceVersion);
         }

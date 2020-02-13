@@ -14,7 +14,7 @@ Q_OBJECT
 
 public:
     const QString &TableName() const override;
-    const std::wstring &TableDescription() const override;
+    const QString &TableDescription() const override;
     const TTableFields &TableFields() const override;
     const TTableData &TableInitialData() const override;
     void SetTableData(bool previouslyInitializedData, TTableData &&table) override;
@@ -36,7 +36,7 @@ private:
     constexpr static size_t _maxInterfaceVersion = 1;
     struct SUnitData {
         size_t _dbId;
-        std::wstring _name;
+        QString _name;
         bool _default;
 
         struct STranform {
@@ -45,7 +45,7 @@ private:
             double _toValue;
 
             STranform(SUnitData &toTransform, double thisValue, double toValue): _toTransform(toTransform),
-                    _thisValue(thisValue), _toValue(toValue) {}
+                                                                                 _thisValue(thisValue), _toValue(toValue) {}
         };
 
         std::vector<STranform> _transform;

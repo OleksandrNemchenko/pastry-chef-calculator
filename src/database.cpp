@@ -29,23 +29,23 @@ void PCCDatabase::InitConnection() {
     QString userName = settings.value("userName").toString();
     QString password = settings.value("password").toString();
 
-    logDebug(L"Access parameters : database type \""s, dbType.toStdWString(),
-             L"\", host name \""s, hostName.toStdWString(),
-             L"\", database name \""s, databaseName.toStdWString(),
-             L"\", user name \""s, userName.toStdWString(),
+    logDebug(L"Access parameters : database type \""s, dbType,
+             L"\", host name \""s, hostName,
+             L"\", database name \""s, databaseName,
+             L"\", user name \""s, userName,
              L"\", password: "s, password.isEmpty() ? L"absent"s : L"present"s
     );
 
     _database = QSqlDatabase::addDatabase(dbType);
     if(!_database.isValid())
-        throw L"Invalid database type."s;
+        throw QString("Invalid database type.");
 
     _database.setHostName(hostName);
     _database.setDatabaseName(databaseName);
     _database.setUserName(userName);
     _database.setPassword(password);
     if(!_database.open())
-        throw L"Unable to open database."s;
+        throw QString("Unable to open database.");
 }
 
 template<typename TTable>
@@ -63,7 +63,7 @@ void PCCDatabase::InitTable(std::unique_ptr<TTable> &table, size_t detectedVersi
     ssize_t dataSize = 0;
 
     auto [getSizeSuccess, getSizeQuery] = ExecuteQuery(
-            L"Get "s + table->TableDescription() + L" table size"s,
+            QString("Get %1 table size").arg(table->TableDescription()),
             QString(R"(SELECT count(*) from %1;)"). arg(table->TableName()),
             true);
 
@@ -80,9 +80,9 @@ void PCCDatabase::InitTable(std::unique_ptr<TTable> &table, size_t detectedVersi
         query += ");";
 
         auto [createTableSuccess, createTableQuery] = ExecuteQuery(
-                L"Create "s + table->TableDescription() + L" table"s, query, false);
+                QString("Create %1 table").arg(table->TableDescription()), query, false);
         if(!createTableSuccess)
-            throw L"Unable to create table"s;
+            throw QString("Unable to create table");
     } else
         dataSize = getSizeQuery.value(0).toInt();
 
@@ -125,15 +125,15 @@ void PCCDatabase::InitTable(std::unique_ptr<TTable> &table, size_t detectedVersi
             }
 
             auto [fillInitDataSuccess, fillInitDataQuery] = ExecuteQuery(
-                L"Fill initial data to the "s + table->TableDescription() + L" table"s, query, false );
+                QString("Fill initial data to the %1 table").arg(table->TableDescription()), query, false );
 
             if(!fillInitDataSuccess)
-                throw L"Unable to fill initial data"s;
+                throw QString("Unable to fill initial data");
         }
     }
 
     auto [getDataSuccess, getDataQuery] = ExecuteQuery(
-            L"Get "s + table->TableDescription() + L" table data"s,
+            QString("Get %1 table data").arg(table->TableDescription()),
             QString(R"(SELECT * from %1;)"). arg(table->TableName()),
             true);
 
@@ -178,26 +178,24 @@ void PCCDatabase::Initialize() {
 
         logTask.succeeded();
     }
-    catch(std::wstring errDescr) {
-        logError(L"Unable to open database. "s, errDescr, L" Last SQL error: "s, _database.lastError().text().toStdWString());
+    catch(QString errDescr) {
+        logError(L"Unable to open database. "s, errDescr, L" Last SQL error: "s, _database.lastError().text());
 
-        emit databaseInitializationError(QString::fromStdWString(errDescr) +
-                                         QString::fromStdWString(L"\nSQL error : "s) +
-                                         _database.lastError().text());
+        emit databaseInitializationError(QString("%1\nSQL error : %2"). arg(errDescr). arg(_database.lastError().text()));
     }
 }
 
-PCCDatabase::TExecuteQuery PCCDatabase::ExecuteQuery(std::wstring &&descr, QString query_str, bool allow_error) const {
+PCCDatabase::TExecuteQuery PCCDatabase::ExecuteQuery(QString &&descr, QString query_str, bool allow_error) const {
     TExecuteQuery res;
     auto &[result, query] = res;
     query = QSqlQuery( _database );
     result = false;
 
-    logDebug( descr, L" query : "s, query_str.toStdWString() );
+    logDebug(descr.toStdWString(), L" query : "s, query_str);
 
     bool exec = query.exec( query_str );
-    if( !exec || ( !allow_error && query.lastError().type() != QSqlError::NoError )){
-        logError( L"SQL error : "s, query.lastError().text().toStdWString() );
+    if (!exec || ( !allow_error && query.lastError().type() != QSqlError::NoError)) {
+        logError(L"SQL error : "s, query.lastError().text());
         return res;
     }
 

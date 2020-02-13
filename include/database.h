@@ -24,7 +24,7 @@ public:
     using TTableFields = std::vector<TField>;
 
     virtual const QString &TableName () const = 0;
-    virtual const std::wstring &TableDescription () const = 0;
+    virtual const QString &TableDescription () const = 0;
     virtual const TTableFields &TableFields () const = 0;
     virtual const TTableData &TableInitialData () const { static const TTableData emptyData; return emptyData; }
     virtual void SetInterfaceVersion (size_t version) { _currentInterfaceVersion = version; }
@@ -42,8 +42,8 @@ public:
     PCCDatabase(bool initEvent);
     ~PCCDatabase() override;
 
-    using TExecuteQuery = std::pair<bool, QSqlQuery>;
-    TExecuteQuery ExecuteQuery( std::wstring &&descr, QString query_str, bool allow_error = false ) const;
+    using TExecuteQuery = QPair<bool, QSqlQuery>;
+    TExecuteQuery ExecuteQuery(QString &&descr, QString query_str, bool allow_error = false ) const;
 
     constexpr static size_t InterfaceVersion() { return 1; }
     int InitEventId() const { return _initEventId; }
