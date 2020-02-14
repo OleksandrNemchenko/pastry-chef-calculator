@@ -14,8 +14,8 @@ Q_OBJECT
 public:
     struct SUnitTransform{
         size_t _dbId;
-        size_t _fromType;
-        size_t _toType;
+        size_t _fromUnit;
+        size_t _toUnit;
         long double _fromValue;
         long double _toValue;
     };

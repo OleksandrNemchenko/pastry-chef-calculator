@@ -107,41 +107,31 @@ void PCCUnits::SetTableDataInterface1(bool previouslyInitializedData, PCCDbTable
 void PCCUnits::SetUnitsTransform(const PCCUnitsTransform& unitsTransforms) {
 
     for (const PCCUnitsTransform::SUnitTransform &transform : unitsTransforms.Transforms() ) {
-        TUnitsArray::iterator from;
-        TUnitsArray::iterator to;
+        decltype(_units)::iterator itUnitFrom = _units.end();
+        decltype(_units)::iterator itUnitTo = _units.end();
 
-        auto tryToFind = [this] (size_t id) {
-            EUnitType elemType;
-            TUnitsArray::iterator itValue;
+        for (auto itUnit = _units.begin(); itUnit != _units.end(); ++itUnit) {
+            if (transform._fromUnit == itUnit->_dbId)
+                itUnitFrom = itUnit;
+            if (transform._toUnit == itUnit->_dbId)
+                itUnitTo = itUnit;
+        }
 
-            for (auto itUnit = _units.begin(); itUnit != _units.end(); ++itUnit) {
-                if (itUnit->_dbId == id)
-                    return itUnit;
-            }
-
-            return _units.end();
-        };
-
-        auto itValueFrom = tryToFind(transform._fromType);
-        auto itValueTo   = tryToFind(transform._toType  );
-
-        if (itValueFrom == _units.end() || itValueTo == _units.end()) {
+        if (itUnitFrom == _units.end() || itUnitTo == _units.end()) {
             logError(L"Incorrect units transformation : ID = "s, transform._dbId,
                      L", from value = "s, transform._fromValue,
-                     L", from type = "s, transform._fromType,
+                     L", from unit = "s, transform._fromUnit,
                      L", to value = "s, transform._toValue,
-                     L", to type = "s, transform._toType );
+                     L", to unit = "s, transform._toUnit );
             continue;
         }
 
-        logDebug(L"Units transformation : "s, transform._fromValue, itValueFrom->_abbreviaton, L" (db ID "s, itValueFrom->_dbId, L") = "s,
-                 transform._toValue, itValueTo->_abbreviaton, L" (db ID "s, itValueTo->_dbId, L")"s);
+        logDebug(L"Units transformation : "s, transform._fromValue, itUnitFrom->_abbreviaton, L" (db ID "s, itUnitFrom->_dbId, L") = "s,
+                 transform._toValue, itUnitTo->_abbreviaton, L" (db ID "s, itUnitTo->_dbId, L")"s);
 
-        SUnitData::STranform directTransform(*itValueTo, transform._fromValue, transform._toValue);
-        SUnitData::STranform reverseTransform(*itValueFrom, transform._toValue, transform._fromValue);
+        SUnitData::STranform unitDataTransform(*itUnitTo, transform._fromValue, transform._toValue);
 
-        itValueFrom->_transform.emplace_back(std::move(directTransform));
-        itValueTo->_transform.emplace_back(std::move(reverseTransform));
+        itUnitFrom->_transform.emplace_back(std::move(unitDataTransform));
     }
 }
 

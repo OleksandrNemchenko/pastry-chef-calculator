@@ -20,9 +20,9 @@ const PCCDbTable::TTableFields &PCCUnitsTransform::TableFields() const {
     static const TTableFields fields = {
             {"ID", "INTEGER UNIQUE"},
             {"ValueFrom", "REAL"},
-            {"TypeFrom", "INTEGER"},
+            {"UnitFrom", "INTEGER"},
             {"ValueTo", "REAL"},
-            {"TypeTo", "INTEGER"},
+            {"UnitTo", "INTEGER"},
     };
 
     return fields;
@@ -54,9 +54,9 @@ void PCCUnitsTransform::SetTableDataInterface1(bool previouslyInitializedData, P
 
         unitData._dbId = row[0].toULongLong();
         unitData._fromValue = row[1].toDouble();
-        unitData._fromType = row[2].toInt();
+        unitData._fromUnit = row[2].toInt();
         unitData._toValue = row[3].toDouble();
-        unitData._toType = row[4].toInt();
+        unitData._toUnit = row[4].toInt();
 
         _unitsTransform.emplace_back(std::move(unitData));
     }
