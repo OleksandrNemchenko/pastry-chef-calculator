@@ -31,7 +31,9 @@ const PCCDbTable::TTableFields &PCCUnitsTransform::TableFields() const {
 const PCCDbTable::TTableData &PCCUnitsTransform::TableInitialData() const {
     static const TTableData initialData = {
             {QString::number(0), QString::number(1000), QString::number(1), QString::number(1), QString::number(2)}, // 1000g = 1kg
-            {QString::number(1), QString::number(1000), QString::number(4), QString::number(1), QString::number(3)}  // 1000ml =1l
+            {QString::number(1), QString::number(1000), QString::number(4), QString::number(1), QString::number(3)}, // 1000ml = 1l
+            {QString::number(2), QString::number(1),    QString::number(6), QString::number(453.59237), QString::number(1)},  // 1lb = 453,59237g
+            {QString::number(3), QString::number(1),    QString::number(7), QString::number(28.349523125), QString::number(1)},  // 1oz = 28,349523125g
     };
 
     return initialData;

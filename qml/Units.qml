@@ -42,6 +42,27 @@ import QtQuick.Controls.Styles 1.4
 Rectangle {
     anchors.fill: parent
 
+/*
+    ListModel {
+        id: someDataModel
+
+        ListElement       { field: "a"; value : 10}
+        ListElement       { field: "ad"; value : 230}
+
+        Component.onCompleted: {
+            append ({"field" : "f", "value": 2})
+            append ({"field" : "dd", "value": 55})
+        }
+    }
+
+    ListView {
+        model: someDataModel
+                anchors.fill: parent
+        delegate: Text { text: field + " : " + value }
+    }
+}
+*/
+
     ListView {
         id: view
         z: 1
@@ -51,23 +72,68 @@ Rectangle {
         spacing: 10
         model: PCCUnits
 
-        ScrollBar.vertical: ScrollBar {}
+        section {
+            property: "type"
+            delegate: Item {
+                id: sectionHeader
+                width: view.width
+                height: 50
+
+                Text {
+                    id: sectionName
+                    anchors.left: parent.left
+                    renderType: Text.NativeRendering
+                    color: "blue"
+                    text: section
+                }
+//
+//              Image {
+//                  id: sectionCollapseButton
+//                  anchors.right: sectionAddButton.left
+//                  anchors.margins: common.dp(5)
+//                  source: "pics/Collapse.svg"
+//                  sourceSize.width: common.smallButtonSide
+//                  sourceSize.height: common.smallButtonSide
+//                  MouseArea {
+//                      anchors.fill: parent
+//                      onClicked: {
+//                          listDelegate.height = listDelegate.visible ? 0 : 40
+//                          listDelegate.visible = !listDelegate.visible
+//                          console.log("=== CLICK!!! ===")
+//                      }
+//                  }
+//              }
+//
+                Image {
+                    id: sectionAddButton
+                    anchors.right: parent.right
+                    anchors.margins: common.dp(5)
+                    source: "pics/Add.svg"
+                    sourceSize.width: common.smallButtonSide
+                    sourceSize.height: common.smallButtonSide
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: { }
+                    }
+                }
+            }
+        }
 
         delegate: Item {
             id: listDelegate
 
             width: view.width
-            height: 40
+            height: 50
 
                 Text {
-                    id: text1
+                    id: unitTitle
                     anchors.left: parent.left
                     renderType: Text.NativeRendering
-                    text: type + " : " + name + "; " + isDefault
+                    text: title + " (" + abbreviation + ")" + (isDefault ? qsTr(", по умолчанию") : "")
                 }
 
                 Image {
-                    id: deleteButton
+                    id: delegateDeleteButton
                     anchors.right: parent.right
                     anchors.margins: common.dp(5)
                     source: "pics/Delete.svg"
@@ -80,8 +146,8 @@ Rectangle {
                 }
 
                 Image {
-                    id: editButton
-                    anchors.right: deleteButton.left
+                    id: delegateEditButton
+                    anchors.right: delegateDeleteButton.left
                     anchors.margins: common.dp(5)
                     source: "pics/Edit.svg"
                     sourceSize.width: common.smallButtonSide
@@ -91,6 +157,30 @@ Rectangle {
                         onClicked: {}
                     }
                 }
+
+                ListModel {
+                    id: unitTransformModel
+                    Component.onCompleted: {
+                        var amount = PCCUnits.unitTransformsAmount(dbId)
+                        for (var step = 0; step < amount; ++step) {
+                            append(PCCUnits.unitTransform(dbId, step))
+                        }
+                    }
+                }
+                ListView {
+                    id: unitTransformView
+                    model: unitTransformModel
+                    anchors.top: unitTitle.bottom
+                    anchors.left: parent.left
+                    anchors.right: parent.righ
+                    height: 50
+
+                    delegate: Text {
+                        text: thisValue + abbreviation + " ==> " + toValue + toUnitAbbreviation
+                    }
+                }
+
         }
     }
+
 }

@@ -28,9 +28,15 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     QHash<int, QByteArray> roleNames() const override;
 
+//  Access from QML
+    Q_INVOKABLE uint unitTransformsAmount(uint dbId);
+    Q_INVOKABLE QJsonObject unitTransform(uint dbId, uint transformStep);
+
     enum class EUnitRoles : int {
-        TYPE = Qt::UserRole + 1,
-        NAME,
+        DB_ID = Qt::UserRole + 1,
+        TYPE,
+        TITLE,
+        ABBREVIATION,
         IS_DEFAULT
     };
 
@@ -50,7 +56,8 @@ private:
     struct SUnitData {
         size_t _dbId;
         EUnitType _type;
-        QString _name;
+        QString _title;
+        QString _abbreviaton;
         bool _default;
 
         struct STranform {

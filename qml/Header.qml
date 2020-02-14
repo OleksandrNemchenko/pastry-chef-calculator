@@ -5,7 +5,7 @@ Rectangle {
     property alias text: header.text
 
     width: parent.width
-    height: addButton.y + addButton.height
+    height: header.y + header.height
 
     Text {
         id: header
