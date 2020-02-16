@@ -99,9 +99,20 @@ void PCCUnits::SetTableDataInterface1(bool previouslyInitializedData, PCCDbTable
         _units.emplace_back(std::move(unitData));
     }
 
+    std::sort(_units.begin(), _units.end());
+
     endInsertRows();
 
     emit dataChanged(index(0, 0), index(correctRows, 0));
+}
+
+bool PCCUnits::SUnitData::operator<(const SUnitData& right) const
+{
+    if (static_cast<size_t>(_type) == static_cast<size_t>(right._type))
+        return _title < right._title;
+    else
+        return static_cast<size_t>(_type) < static_cast<size_t>(right._type);
+
 }
 
 void PCCUnits::SetUnitsTransform(const PCCUnitsTransform& unitsTransforms) {
@@ -133,6 +144,7 @@ void PCCUnits::SetUnitsTransform(const PCCUnitsTransform& unitsTransforms) {
 
         itUnitFrom->_transform.emplace_back(std::move(unitDataTransform));
     }
+
 }
 
 int PCCUnits::rowCount(const QModelIndex &parent) const
@@ -181,31 +193,29 @@ uint PCCUnits::unitTransformsAmount(uint dbId)
     return 0;
 }
 
-Q_INVOKABLE QJsonObject PCCUnits::unitTransform(uint dbId, uint transformStep)
+Q_INVOKABLE QJsonArray PCCUnits::unitTransforms(uint dbId)
 {
-    QJsonObject json;
-
-    if (transformStep >= unitTransformsAmount(dbId)) {
-        logError(L"Incorrect step = "s, transformStep, L" for dbId = "s, dbId);
-        return json;
-    }
+    QJsonArray values;
 
     for (const auto &unit : _units) {
         if (unit._dbId != dbId)
             continue;
 
-        const SUnitData::STranform &transform = unit._transform[transformStep];
+        for (const auto &transform : unit._transform) {
+            QJsonObject value;
 
-        json.insert("thisValue", transform._thisValue);
-        json.insert("toValue", transform._toValue);
-        json.insert("toUnitAbbreviation", transform._toTransform._abbreviaton);
+            value.insert("thisValue", transform._thisValue);
+            value.insert("toValue", transform._toValue);
+            value.insert("toUnitAbbreviation", transform._toTransform._abbreviaton);
 
-        return json;
+            values.append(value);
+        }
     }
 
-    logError(L"Incorrect dbId = "s, dbId, L" unitTransforms request from QML"s);
+    if (values.empty())
+        logError(L"Incorrect dbId = "s, dbId, L" unitTransforms request from QML"s);
 
-    return json;
+    return values;
 }
 
 /* static */ const QString& PCCUnits::typeDescription(EUnitType unitType)

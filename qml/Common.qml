@@ -67,4 +67,37 @@ Item {
     }
 
     property int smallButtonSide: dp(20)
+    property int listMargin: dp(5)
+    property int sectionTitleMargin: dp(5)
+    property int unitMargin: dp(5)
+    property int unitTransformMargin: dp(5)
+    property int buttonsMargin: dp(5)
+
+    property color titleColor: "darkGray"
+    property color titleBackground: "lightGray"
+
+    property color sectionTitleBackground: "white"
+    property color sectionTitleColor: "darkBlue"
+
+    property color unitBackground: "white"
+    property color unitColor: "darkRed"
+
+    property color unitTransformBackground: "white"
+    property color unitTransformColor: "darkGreen"
+
+    property bool titleFontBold: true
+    property int titleFontPointSize: 30
+
+    property bool sectionTitleBold: true
+    property int sectionTitlePointSize: 14
+
+    property bool unitBold: false
+    property int unitPointSize: 14
+
+    property bool unitTransformBold: false
+    property int unitTransformPointSize: 14
+
+    property int unitTransformHeight: dp(14)
+
+    property int indent: dp(20)
 }

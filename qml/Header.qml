@@ -1,35 +1,28 @@
 import QtQuick 2.0
-import QtQuick.Layouts 1.5
 
 Rectangle {
-    property alias text: header.text
+    property alias text: headerText.text
 
     width: parent.width
-    height: header.y + header.height
-
-    Text {
-        id: header
-        font.bold: true
-        font.pointSize: 30
-        color: "black"
-    }
+    height: common.dp(50)
 
     Rectangle {
-        id: addButton
-        width: parent.width
-        anchors.top: header.bottom
+        anchors.fill: parent
 
-                Image {
-                    anchors.left: parent.left
-                    anchors.margins: common.dp(5)
-                    source: "pics/Add.svg"
-                    sourceSize.width: common.smallButtonSide
-                    sourceSize.height: common.smallButtonSide
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {}
-                    }
-                }
+        color: common.titleBackground
 
-    }
-}
+        Text {
+            id: headerText
+
+            anchors.fill: parent
+
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            font.bold: common.titleFontBold
+            font.pointSize: common.titleFontPointSize
+            color: common.titleColor
+
+        }   // Text
+
+    }   // Rectangle
+}   // Rectangle

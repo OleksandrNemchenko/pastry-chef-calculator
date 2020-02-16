@@ -94,4 +94,5 @@ ApplicationWindow {
         changeSelection(Common.ActiveMode.Units)
         dbStatusView.showDbState(hasDbError, lastDbError)
     }
+
 }

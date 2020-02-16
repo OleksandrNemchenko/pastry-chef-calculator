@@ -30,7 +30,7 @@ public:
 
 //  Access from QML
     Q_INVOKABLE uint unitTransformsAmount(uint dbId);
-    Q_INVOKABLE QJsonObject unitTransform(uint dbId, uint transformStep);
+    Q_INVOKABLE QJsonArray unitTransforms(uint dbId);
 
     enum class EUnitRoles : int {
         DB_ID = Qt::UserRole + 1,
@@ -60,6 +60,8 @@ private:
         QString _abbreviaton;
         bool _default;
 
+        bool operator<(const SUnitData& right) const;
+
         struct STranform {
             SUnitData &_toTransform;
             double _thisValue;
@@ -71,6 +73,7 @@ private:
 
         std::vector<STranform> _transform;
     };
+
 
     void SetTableDataInterface1(bool previouslyInitializedData, TTableData &&table);
     static const QString& typeDescription(EUnitType unitType);
