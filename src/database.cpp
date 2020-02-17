@@ -166,7 +166,7 @@ void PCCDatabase::Initialize() {
         InitTable(_unitsTransform, _metaInfo->UnitsTransformInterfaceVersion());
 
         InitTable(_units, _metaInfo->UnitsInterfaceVersion());
-        _units->SetUnitsTransform(*_unitsTransform.get());
+        _units->SetUnitsTransform(_unitsTransform.get());
 
         logTask.succeeded();
     }
@@ -193,4 +193,20 @@ PCCDatabase::TExecuteQuery PCCDatabase::ExecuteQuery(QString &&descr, QString qu
     result = true;
 
     return res;
+}
+
+bool PCCDbTable::DeleteRecord (size_t dbId)
+{
+    auto logTask = _log.addTask();
+    QString queryStr = QString("DELETE FROM %1 WHERE %2 = '%3'"). arg(TableName()). arg(IDFieldName()). arg(dbId);
+
+    auto [result, query] = _db->ExecuteQuery(QString("Delete record from %1 table").arg(TableDescription()), queryStr);
+
+    if (!result) {
+        logError(L"Unable to delete record from table "s, TableName());
+        return false;
+    }
+
+    logTask.succeeded();
+    return true;
 }

@@ -30,9 +30,14 @@ public:
     virtual void SetInterfaceVersion (size_t version) { _currentInterfaceVersion = version; }
     virtual size_t CurrentInterfaceVersion () const { return _currentInterfaceVersion; }
     virtual void SetTableData (bool previouslyInitializedData, TTableData &&table) = 0;
+    virtual bool DeleteField(size_t dbId) { return DeleteRecord(dbId); }
 
 protected:
     size_t _currentInterfaceVersion;
+
+    virtual const QString& IDFieldName() const { return TableFields().at(0).name; }
+    virtual size_t IDFieldPosition() const { return 0; }
+    virtual bool DeleteRecord(size_t dbId);
 };
 
 class PCCDatabase : public QObject {
@@ -55,6 +60,7 @@ public:
     const QString& lastDbError() const          { return _lastError; }
 
     PCCUnits& units()                           { return *_units.get(); }
+    PCCUnitsTransform& unitTransforms()         { return *_unitsTransform.get(); }
 
 private:
     QSqlDatabase _database;
@@ -70,28 +76,5 @@ private:
     void InitTable(std::unique_ptr<TTable> &table, size_t neededVersion);
 
 };
-/*
-class PCCDatabaseQml : public QObject {
-    Q_OBJECT
 
-public:
-    PCCDatabaseQml();
-    ~PCCDatabaseQml();
-
-    PCCDatabase &dataBase() { return *_db.get(); }
-    QAbstractListModel* unitsModel();
-
-signals:
-    void databaseInitialization();
-    void databaseInitializedSuccessfully();
-    void databaseInitializationError(QString errorDescription);
-
-public slots:
-    void Initialize();
-
-private:
-    std::unique_ptr<PCCDatabase> _db;
-    QThread _dbThread;
-};
-*/
 #endif //PASTRY_CHEF_CALCULATOR_DATABASE_H_

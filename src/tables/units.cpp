@@ -80,7 +80,7 @@ void PCCUnits::SetTableDataInterface1(bool previouslyInitializedData, PCCDbTable
     for (const TTableRow &row : table) {
         SUnitData unitData;
 
-        unitData._dbId = row[DB_ID].toULongLong();
+        unitData._dbId = row[DB_ID].toUInt();
         unitData._title = row[TITLE];
         unitData._abbreviaton = row[ABBREV];
         int type = row[TYPE].toInt();
@@ -106,7 +106,7 @@ void PCCUnits::SetTableDataInterface1(bool previouslyInitializedData, PCCDbTable
     emit dataChanged(index(0, 0), index(correctRows, 0));
 }
 
-bool PCCUnits::SUnitData::operator<(const SUnitData& right) const
+bool SUnitData::operator<(const SUnitData& right) const
 {
     if (static_cast<size_t>(_type) == static_cast<size_t>(right._type))
         return _title < right._title;
@@ -115,9 +115,9 @@ bool PCCUnits::SUnitData::operator<(const SUnitData& right) const
 
 }
 
-void PCCUnits::SetUnitsTransform(const PCCUnitsTransform& unitsTransforms) {
+void PCCUnits::SetUnitsTransform(PCCUnitsTransform* unitsTransforms) {
 
-    for (const PCCUnitsTransform::SUnitTransform &transform : unitsTransforms.Transforms() ) {
+    for (const SUnitTransform &transform : unitsTransforms->Transforms() ) {
         decltype(_units)::iterator itUnitFrom = _units.end();
         decltype(_units)::iterator itUnitTo = _units.end();
 
@@ -140,9 +140,8 @@ void PCCUnits::SetUnitsTransform(const PCCUnitsTransform& unitsTransforms) {
         logDebug(L"Units transformation : "s, transform._fromValue, itUnitFrom->_abbreviaton, L" (db ID "s, itUnitFrom->_dbId, L") = "s,
                  transform._toValue, itUnitTo->_abbreviaton, L" (db ID "s, itUnitTo->_dbId, L")"s);
 
-        SUnitData::STranform unitDataTransform(*itUnitTo, transform._fromValue, transform._toValue);
-
-        itUnitFrom->_transform.emplace_back(std::move(unitDataTransform));
+        unitsTransforms->SetTransformPointers(transform._dbId, &*itUnitFrom, &*itUnitTo);
+        itUnitFrom->_transform.emplace_back(&transform);
     }
 
 }
@@ -160,7 +159,7 @@ QVariant PCCUnits::data(const QModelIndex &index, int role) const
     const SUnitData &unit = _units.at(index.row());
 
     switch (role) {
-        case static_cast<int>(EUnitRoles::DB_ID) :         return static_cast<uint>(unit._dbId);
+        case static_cast<int>(EUnitRoles::DB_ID) :         return unit._dbId;
         case static_cast<int>(EUnitRoles::TYPE) :          return typeDescription(unit._type);
         case static_cast<int>(EUnitRoles::TITLE) :         return unit._title;
         case static_cast<int>(EUnitRoles::ABBREVIATION) :  return unit._abbreviaton;
@@ -172,7 +171,7 @@ QVariant PCCUnits::data(const QModelIndex &index, int role) const
 QHash<int, QByteArray> PCCUnits::roleNames() const
 {
     static const QHash<int, QByteArray> roles{
-            {static_cast<int>(EUnitRoles::DB_ID), "dbId"},
+            {static_cast<int>(EUnitRoles::DB_ID), "idUnit"},
             {static_cast<int>(EUnitRoles::TYPE), "type"},
             {static_cast<int>(EUnitRoles::TITLE), "title"},
             {static_cast<int>(EUnitRoles::ABBREVIATION), "abbreviation"},
@@ -182,40 +181,9 @@ QHash<int, QByteArray> PCCUnits::roleNames() const
     return roles;
 }
 
-uint PCCUnits::unitTransformsAmount(uint dbId)
-{
-    for (const auto &unit : _units) {
-        if (unit._dbId == dbId)
-            return unit._transform.size();
-    }
-
-    logError(L"Incorrect dbId = "s, dbId, L" unitTransformsAmount request from QML"s);
-    return 0;
-}
-
 Q_INVOKABLE QJsonArray PCCUnits::unitTransforms(uint dbId)
 {
-    QJsonArray values;
-
-    for (const auto &unit : _units) {
-        if (unit._dbId != dbId)
-            continue;
-
-        for (const auto &transform : unit._transform) {
-            QJsonObject value;
-
-            value.insert("thisValue", transform._thisValue);
-            value.insert("toValue", transform._toValue);
-            value.insert("toUnitAbbreviation", transform._toTransform._abbreviaton);
-
-            values.append(value);
-        }
-    }
-
-    if (values.empty())
-        logError(L"Incorrect dbId = "s, dbId, L" unitTransforms request from QML"s);
-
-    return values;
+    return _db->unitTransforms().unitTransforms(dbId);
 }
 
 /* static */ const QString& PCCUnits::typeDescription(EUnitType unitType)
@@ -230,4 +198,29 @@ Q_INVOKABLE QJsonArray PCCUnits::unitTransforms(uint dbId)
     assert(static_cast<size_t>(unitType) < static_cast<size_t>(EUnitType::UNITS_AMOUNT));
 
     return description[static_cast<size_t>(unitType)];
+}
+
+Q_INVOKABLE void PCCUnits::unitTransformDelete(uint idUnit, uint idUnitTransform)
+{
+    auto itUnit = std::find_if(_units.begin(), _units.end(), [idUnit](const SUnitData& unit) {
+        return unit._dbId == idUnit;
+    } );
+    if (itUnit == _units.end()) {
+        logError(L"Unit ID = "s, idUnit, L" has not been found"s);
+        return;
+    }
+
+    auto &transform = itUnit->_transform;
+    auto itUnitTransform = std::find_if(transform.begin(), transform.end(), [idUnitTransform](const SUnitTransform* transform) {
+        return transform->_dbId == idUnitTransform;
+    } );
+    if (itUnitTransform == transform.end()) {
+        logError(L"Unit transform ID = "s, idUnitTransform, L" for unit ID = "s, idUnit, L" has not been found"s);
+        return;
+    }
+
+    if (!_db->unitTransforms().DeleteField(idUnitTransform))
+        return;
+
+    // list model changes
 }

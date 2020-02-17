@@ -1,10 +1,12 @@
 #include <app.h>
+
 #include <filesystem>
 #include <codecvt>
-#include </Users/oleksandr/Projects/pastry-chef-calculator/include/tables/units.h>
+
+#include <tables/units.h>
 
 namespace {
-    
+
     void initLogger() {
         QSettings settings;
         QString defaultLogFilePath = QDir::tempPath();
@@ -49,7 +51,7 @@ namespace {
         context->setContextProperty("hasDbError", _db->hasDbError());
         context->setContextProperty("lastDbError", _db->lastDbError());
         context->setContextProperty("PCCUnits", &_db->units());
-    
+
         const QUrl url(QStringLiteral("qrc:/qml/Main.qml"));
         engine.load(url);
     

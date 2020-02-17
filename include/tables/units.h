@@ -8,13 +8,38 @@
 #include <app.h>
 
 class PCCUnitsTransform;
+struct SUnitTransform;
+
+enum class EUnitType{
+    FIRST = 0,
+
+    CURRENCY = FIRST,
+    WEIGHT,
+    VOLUME,
+    PIECE,
+
+    UNITS_AMOUNT
+};
+
+struct SUnitData {
+    uint _dbId;
+    EUnitType _type;
+    QString _title;
+    QString _abbreviaton;
+    bool _default;
+
+    bool operator<(const SUnitData& right) const;
+
+    std::vector<const SUnitTransform*> _transform;
+};
+
 
 class PCCUnits : public QAbstractListModel, public PCCDbTable {
 Q_OBJECT
 
 public:
     static constexpr size_t MaxInterfaceVersion () { return _maxInterfaceVersion; }
-    void SetUnitsTransform(const PCCUnitsTransform& unitsTransforms);
+    void SetUnitsTransform(PCCUnitsTransform* unitsTransforms);
 
     // PCCDbTable implementations
     const QString &TableName() const override;
@@ -29,8 +54,8 @@ public:
     QHash<int, QByteArray> roleNames() const override;
 
 //  Access from QML
-    Q_INVOKABLE uint unitTransformsAmount(uint dbId);
     Q_INVOKABLE QJsonArray unitTransforms(uint dbId);
+    Q_INVOKABLE void unitTransformDelete(uint idUnit, uint idUnitTransform);
 
     enum class EUnitRoles : int {
         DB_ID = Qt::UserRole + 1,
@@ -41,38 +66,8 @@ public:
     };
 
 private:
-    enum class EUnitType{
-        FIRST = 0,
-
-        CURRENCY = FIRST,
-        WEIGHT,
-        VOLUME,
-        PIECE,
-
-        UNITS_AMOUNT
-    };
 
     constexpr static size_t _maxInterfaceVersion = 1;
-    struct SUnitData {
-        size_t _dbId;
-        EUnitType _type;
-        QString _title;
-        QString _abbreviaton;
-        bool _default;
-
-        bool operator<(const SUnitData& right) const;
-
-        struct STranform {
-            SUnitData &_toTransform;
-            double _thisValue;
-            double _toValue;
-
-            STranform(SUnitData &toTransform, double thisValue, double toValue): _toTransform(toTransform),
-                                                                                 _thisValue(thisValue), _toValue(toValue) {}
-        };
-
-        std::vector<STranform> _transform;
-    };
 
 
     void SetTableDataInterface1(bool previouslyInitializedData, TTableData &&table);
