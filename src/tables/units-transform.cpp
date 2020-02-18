@@ -61,7 +61,7 @@ void PCCUnitsTransform::SetTableDataInterface1(bool previouslyInitializedData, P
         unitData._from = nullptr;
         unitData._to = nullptr;
 
-        _unitsTransform.emplace_back(std::move(unitData));
+        _unitsTransform.append(std::move(unitData));
     }
 }
 

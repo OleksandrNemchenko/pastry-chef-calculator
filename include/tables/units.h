@@ -30,7 +30,7 @@ struct SUnitData {
 
     bool operator<(const SUnitData& right) const;
 
-    std::vector<const SUnitTransform*> _transform;
+    QVector<const SUnitTransform*> _transform;
 };
 
 
@@ -73,7 +73,7 @@ private:
     void SetTableDataInterface1(bool previouslyInitializedData, TTableData &&table);
     static const QString& typeDescription(EUnitType unitType);
 
-    using TUnitsArray = std::vector<SUnitData>;
+    using TUnitsArray = QVector<SUnitData>;
     TUnitsArray _units;
 };
 

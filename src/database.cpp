@@ -144,10 +144,10 @@ void PCCDatabase::InitTable(std::unique_ptr<TTable> &table, size_t detectedVersi
 
         for(auto columnName : tableFields){
             int fieldId = getDataQuery.record().indexOf(columnName.name);
-            tableRow.emplace_back(getDataQuery.value(fieldId).toString());
+            tableRow.append(getDataQuery.value(fieldId).toString());
         }
 
-        tableData.emplace_back(tableRow);
+        tableData.append(tableRow);
     }
 
     table->SetTableData(previouslyInitializedData, std::move(tableData));

@@ -24,7 +24,7 @@ class PCCUnitsTransform : public QObject, public PCCDbTable {
 Q_OBJECT
 
 public:
-    using TUnitsTransformArray = std::vector<SUnitTransform>;
+    using TUnitsTransformArray = QVector<SUnitTransform>;
 
     const QString &TableName() const override;
     const QString &TableDescription() const override;

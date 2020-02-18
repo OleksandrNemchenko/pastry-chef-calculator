@@ -96,7 +96,7 @@ void PCCUnits::SetTableDataInterface1(bool previouslyInitializedData, PCCDbTable
         logDebug(L"Loaded unit : \""s, unitData._title, L"\" ("s, unitData._abbreviaton, L") : db id = "s,
                 unitData._dbId, L", type = "s, type, unitData._default ? L", default"s : L""s);
 
-        _units.emplace_back(std::move(unitData));
+        _units.append(std::move(unitData));
     }
 
     std::sort(_units.begin(), _units.end());
@@ -141,7 +141,7 @@ void PCCUnits::SetUnitsTransform(PCCUnitsTransform* unitsTransforms) {
                  transform._toValue, itUnitTo->_abbreviaton, L" (db ID "s, itUnitTo->_dbId, L")"s);
 
         unitsTransforms->SetTransformPointers(transform._dbId, &*itUnitFrom, &*itUnitTo);
-        itUnitFrom->_transform.emplace_back(&transform);
+        itUnitFrom->_transform.append(&transform);
     }
 
 }

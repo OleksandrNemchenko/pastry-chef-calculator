@@ -19,9 +19,9 @@ public:
         QString creationParameters;
     };
 
-    using TTableRow = std::vector<QString>;
-    using TTableData = std::vector<TTableRow>;
-    using TTableFields = std::vector<TField>;
+    using TTableRow = QVector<QString>;
+    using TTableData = QVector<TTableRow>;
+    using TTableFields = QVector<TField>;
 
     virtual const QString &TableName () const = 0;
     virtual const QString &TableDescription () const = 0;
