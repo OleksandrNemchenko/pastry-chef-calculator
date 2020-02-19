@@ -38,6 +38,7 @@ public:
     QJsonArray unitTransforms(uint dbFromUnit) const;
     const TUnitsTransformArray &Transforms() const { return _unitsTransform; }
     void SetTransformPointers(uint dbId, SUnitData* from, SUnitData* to);
+    void DeleteUnitTransforms(uint unitDbId);
 
 private:
     constexpr static size_t _maxInterfaceVersion = 1;

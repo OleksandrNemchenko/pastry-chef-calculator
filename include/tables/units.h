@@ -23,10 +23,10 @@ enum class EUnitType{
 
 struct SUnitData {
     uint _dbId;
+    uint _unitIndex;
     EUnitType _type;
     QString _title;
     QString _abbreviaton;
-    bool _default;
 
     bool operator<(const SUnitData& right) const;
 
@@ -40,6 +40,7 @@ Q_OBJECT
 public:
     static constexpr size_t MaxInterfaceVersion () { return _maxInterfaceVersion; }
     void SetUnitsTransform(PCCUnitsTransform* unitsTransforms);
+    bool isSingleUnitForType(const SUnitData& unit) const;
 
     // PCCDbTable implementations
     const QString &TableName() const override;
@@ -56,25 +57,24 @@ public:
 //  Access from QML
     Q_INVOKABLE QJsonArray unitTransforms(uint dbId);
     Q_INVOKABLE void unitTransformDelete(uint idUnit, uint idUnitTransform);
+    Q_INVOKABLE void unitDelete(uint idUnit);
 
     enum class EUnitRoles : int {
         DB_ID = Qt::UserRole + 1,
         TYPE,
         TITLE,
         ABBREVIATION,
-        IS_DEFAULT
+        IS_SINGLE,
     };
 
 private:
 
+    using TUnitsArray = QVector<SUnitData>;
+    TUnitsArray _units;
     constexpr static size_t _maxInterfaceVersion = 1;
-
 
     void SetTableDataInterface1(bool previouslyInitializedData, TTableData &&table);
     static const QString& typeDescription(EUnitType unitType);
-
-    using TUnitsArray = QVector<SUnitData>;
-    TUnitsArray _units;
 };
 
 #endif //PASTRY_CHEF_CALCULATOR_TABLES_UNITS_H_

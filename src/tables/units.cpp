@@ -23,24 +23,21 @@ const PCCDbTable::TTableFields &PCCUnits::TableFields() const {
             {"Title", "TEXT NOT NULL"},
             {"Abbreviation", "TEXT NOT NULL"},
             {"Type", "INTEGER"},
-            {"DefaultUnit", "INTEGER"}
     };
 
     return fields;
 }
 
 const PCCUnits::TTableData &PCCUnits::TableInitialData() const {
-    static const QString DEFAULT = "1";
-    static const QString NOT_DEFAULT = "0";
     static const TTableData initialData = {
-            {QString::number(0), tr("Украинская гривня"), tr("грн"), QString::number(static_cast<int>(EUnitType::CURRENCY)), DEFAULT    },
-            {QString::number(1), tr("Грамм"),             tr("г"),   QString::number(static_cast<int>(EUnitType::WEIGHT)),   NOT_DEFAULT},
-            {QString::number(2), tr("Килограмм"),         tr("кг"),  QString::number(static_cast<int>(EUnitType::WEIGHT)),   DEFAULT    },
-            {QString::number(3), tr("Литр"),              tr("л"),   QString::number(static_cast<int>(EUnitType::VOLUME)),   NOT_DEFAULT},
-            {QString::number(4), tr("Миллилитр"),         tr("мл"),  QString::number(static_cast<int>(EUnitType::VOLUME)),   DEFAULT    },
-            {QString::number(5), tr("Штука"),             tr("шт."), QString::number(static_cast<int>(EUnitType::PIECE)),    DEFAULT    },
-            {QString::number(6), tr("Фунт"),              tr("lb"),  QString::number(static_cast<int>(EUnitType::WEIGHT)),   NOT_DEFAULT},
-            {QString::number(7), tr("Унция"),             tr("oz"),  QString::number(static_cast<int>(EUnitType::WEIGHT)),   NOT_DEFAULT},
+            { QString::number(0), tr("Украинская гривня"), tr("грн"), QString::number(static_cast<int>(EUnitType::CURRENCY)) },
+            { QString::number(1), tr("Грамм"),             tr("г"),   QString::number(static_cast<int>(EUnitType::WEIGHT)) },
+            { QString::number(2), tr("Килограмм"),         tr("кг"),  QString::number(static_cast<int>(EUnitType::WEIGHT)) },
+            { QString::number(3), tr("Литр"),              tr("л"),   QString::number(static_cast<int>(EUnitType::VOLUME)) },
+            { QString::number(4), tr("Миллилитр"),         tr("мл"),  QString::number(static_cast<int>(EUnitType::VOLUME)) },
+            { QString::number(5), tr("Штука"),             tr("шт."), QString::number(static_cast<int>(EUnitType::PIECE)) },
+            { QString::number(6), tr("Фунт"),              tr("lb"),  QString::number(static_cast<int>(EUnitType::WEIGHT)) },
+            { QString::number(7), tr("Унция"),             tr("oz"),  QString::number(static_cast<int>(EUnitType::WEIGHT)) },
     };
 
     return initialData;
@@ -64,7 +61,6 @@ void PCCUnits::SetTableDataInterface1(bool previouslyInitializedData, PCCDbTable
     constexpr size_t TITLE = DB_ID + 1;
     constexpr size_t ABBREV = TITLE + 1;
     constexpr size_t TYPE = ABBREV + 1;
-    constexpr size_t DEFAULT = TYPE + 1;
     (void) previouslyInitializedData;
     size_t correctRows = 0;
 
@@ -84,7 +80,6 @@ void PCCUnits::SetTableDataInterface1(bool previouslyInitializedData, PCCDbTable
         unitData._title = row[TITLE];
         unitData._abbreviaton = row[ABBREV];
         int type = row[TYPE].toInt();
-        unitData._default = row[DEFAULT].toInt() != 0;
 
         if (type >= static_cast<int>(EUnitType::UNITS_AMOUNT)) {
             logError (L"Unsupported unit type "s, type);
@@ -94,7 +89,7 @@ void PCCUnits::SetTableDataInterface1(bool previouslyInitializedData, PCCDbTable
         unitData._type = static_cast<EUnitType>(type);
 
         logDebug(L"Loaded unit : \""s, unitData._title, L"\" ("s, unitData._abbreviaton, L") : db id = "s,
-                unitData._dbId, L", type = "s, type, unitData._default ? L", default"s : L""s);
+                unitData._dbId, L", type = "s, type);
 
         _units.append(std::move(unitData));
     }
@@ -137,7 +132,7 @@ void PCCUnits::SetUnitsTransform(PCCUnitsTransform* unitsTransforms) {
             continue;
         }
 
-        logDebug(L"Units transformation : "s, transform._fromValue, itUnitFrom->_abbreviaton, L" (db ID "s, itUnitFrom->_dbId, L") = "s,
+        logDebug(L"Units transformation ("s, transform._dbId, L"): "s, transform._fromValue, itUnitFrom->_abbreviaton, L" (db ID "s, itUnitFrom->_dbId, L") = "s,
                  transform._toValue, itUnitTo->_abbreviaton, L" (db ID "s, itUnitTo->_dbId, L")"s);
 
         unitsTransforms->SetTransformPointers(transform._dbId, &*itUnitFrom, &*itUnitTo);
@@ -163,7 +158,7 @@ QVariant PCCUnits::data(const QModelIndex &index, int role) const
         case static_cast<int>(EUnitRoles::TYPE) :          return typeDescription(unit._type);
         case static_cast<int>(EUnitRoles::TITLE) :         return unit._title;
         case static_cast<int>(EUnitRoles::ABBREVIATION) :  return unit._abbreviaton;
-        case static_cast<int>(EUnitRoles::IS_DEFAULT) :    return unit._default;
+        case static_cast<int>(EUnitRoles::IS_SINGLE) :     return isSingleUnitForType(unit);
         default: assert(false && "Unsupported unit type"); return QString();
     }
 }
@@ -171,14 +166,23 @@ QVariant PCCUnits::data(const QModelIndex &index, int role) const
 QHash<int, QByteArray> PCCUnits::roleNames() const
 {
     static const QHash<int, QByteArray> roles{
-            {static_cast<int>(EUnitRoles::DB_ID), "idUnit"},
-            {static_cast<int>(EUnitRoles::TYPE), "type"},
-            {static_cast<int>(EUnitRoles::TITLE), "title"},
-            {static_cast<int>(EUnitRoles::ABBREVIATION), "abbreviation"},
-            {static_cast<int>(EUnitRoles::IS_DEFAULT), "isDefault"}
+            { static_cast<int>(EUnitRoles::DB_ID),        "idUnit"      },
+            { static_cast<int>(EUnitRoles::TYPE),         "type"         },
+            { static_cast<int>(EUnitRoles::TITLE),        "title"        },
+            { static_cast<int>(EUnitRoles::ABBREVIATION), "abbreviation" },
+            { static_cast<int>(EUnitRoles::IS_SINGLE),    "isSingle"     }
     };
 
     return roles;
+}
+
+bool PCCUnits::isSingleUnitForType(const SUnitData& unit) const
+{
+    auto itUnit = std::find_if(_units.begin(), _units.end(), [unit](const SUnitData& testUnit) {
+        return unit._dbId != testUnit._dbId && testUnit._type == unit._type;
+    } );
+
+    return itUnit == _units.end();
 }
 
 Q_INVOKABLE QJsonArray PCCUnits::unitTransforms(uint dbId)
@@ -223,4 +227,26 @@ Q_INVOKABLE void PCCUnits::unitTransformDelete(uint idUnit, uint idUnitTransform
         return;
 
     // list model changes
+}
+
+Q_INVOKABLE void PCCUnits::unitDelete(uint idUnit)
+{
+    int unitIndex;
+
+    for (unitIndex = 0; unitIndex < _units.size(); ++unitIndex) {
+        if (_units.at(unitIndex)._dbId == idUnit)
+            break;
+    }
+
+    if (unitIndex == _units.size()) {
+        logError(L"Unit ID = "s, idUnit, L" has not been found"s);
+        return;
+    }
+
+    _db->unitTransforms().DeleteUnitTransforms(idUnit);
+
+    beginRemoveRows(QModelIndex(), unitIndex, unitIndex);
+    DeleteRecord(unitIndex);
+    _units.remove(unitIndex);
+    endRemoveRows();
 }

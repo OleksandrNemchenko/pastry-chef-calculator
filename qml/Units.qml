@@ -3,7 +3,7 @@ import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Dialogs 1.3
 
-Rectangle {
+Item {
     anchors.fill: parent
 
     ListView {
@@ -145,7 +145,7 @@ Rectangle {
                     horizontalAlignment: Text.AlignLeft
                     verticalAlignment: Text.AlignTop
 
-                    text: title + " (" + abbreviation + ")" + (isDefault ? qsTr(", по умолчанию") : "")
+                    text: qsTr("%1 (%2)"). arg(title). arg(abbreviation)
                 } // Text, id: unitTitle
 
                 Image {
@@ -200,10 +200,29 @@ Rectangle {
                     width: common.smallButtonSide
                     height: common.smallButtonSide
 
+                    MessageDialog {
+                        id: unitDeleteDlg
+                        visible: false
+                        title: qsTr("Удаление единицы")
+                        text: qsTr("Вы подтверждаете удаление единицы измерения %1 (%2)?"). arg(title). arg(abbreviation)
+                        icon: StandardIcon.Question
+                        standardButtons: StandardButton.Yes | StandardButton.No
+
+                        onYes: {
+                            PCCUnits.unitDelete(idUnit)
+                        }
+
+                    }
+
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
+                            unitDeleteDlg.open()
                         }
+                    }
+
+                    Component.onCompleted: {
+                        visible = !isSingle
                     }
                 }   // Image, unitDeleteButton
             }
@@ -316,6 +335,7 @@ Rectangle {
                                 unitTransformModel.append(PCCUnits.unitTransforms(idUnit))
                             }
                         }
+
                         MouseArea {
                             anchors.fill: parent
                             onClicked: {

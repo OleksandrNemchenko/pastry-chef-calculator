@@ -124,3 +124,15 @@ QJsonArray PCCUnitsTransform::unitTransforms(uint dbFromUnit) const
 
     return values;
 }
+
+void PCCUnitsTransform::DeleteUnitTransforms(uint unitDbId)
+{
+    for (auto it = _unitsTransform.begin(); it != _unitsTransform.end();) {
+        if (it->_fromUnit == unitDbId || it->_toUnit == unitDbId) {
+            DeleteRecord(it->_dbId);
+            it = _unitsTransform.erase(it);
+        }
+        else
+            ++it;
+    }
+}
