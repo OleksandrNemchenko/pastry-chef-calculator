@@ -8,6 +8,7 @@
 #include <QtCore>
 #include <QtSql>
 
+class PCCDatabase;
 class PCCMetaInformation;
 class PCCUnits;
 class PCCUnitsTransform;
@@ -22,6 +23,7 @@ public:
     using TTableRow = QVector<QString>;
     using TTableData = QVector<TTableRow>;
     using TTableFields = QVector<TField>;
+    using TMapRecordValue = QMap<QString, QString>;
 
     virtual const QString &TableName () const = 0;
     virtual const QString &TableDescription () const = 0;
@@ -29,20 +31,19 @@ public:
     virtual const TTableData &TableInitialData () const { static const TTableData emptyData; return emptyData; }
     virtual void SetInterfaceVersion (size_t version) { _currentInterfaceVersion = version; }
     virtual size_t CurrentInterfaceVersion () const { return _currentInterfaceVersion; }
-    virtual void SetTableData (bool previouslyInitializedData, TTableData &&table) = 0;
-    virtual bool DeleteField(size_t dbId) { return DeleteRecord(dbId); }
+    virtual void SetTableData (PCCDatabase* db, bool previouslyInitializedData, TTableData &&table) = 0;
+    virtual bool DeleteRecord(size_t dbId) { return DeleteDbRecord(dbId); }
 
 protected:
     size_t _currentInterfaceVersion;
 
     virtual const QString& IDFieldName() const { return TableFields().at(0).name; }
     virtual size_t IDFieldPosition() const { return 0; }
-    virtual bool DeleteRecord(size_t dbId);
+    virtual bool DeleteDbRecord(size_t dbId);
+    virtual bool AddRecord(const TMapRecordValue& record);
 };
 
-class PCCDatabase : public QObject {
-    Q_OBJECT
-
+class PCCDatabase {
 public:
     PCCDatabase();
     ~PCCDatabase();

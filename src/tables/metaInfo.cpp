@@ -47,7 +47,9 @@ const PCCDbTable::TTableData &PCCMetaInformation::TableInitialData() const {
     return initialData;
 }
 
-void PCCMetaInformation::SetTableData(bool previouslyInitializedData, PCCDbTable::TTableData &&table) {
+void PCCMetaInformation::SetTableData(PCCDatabase* db, bool previouslyInitializedData, PCCDbTable::TTableData &&table) {
+    (void) db;
+
     for (const auto &row : table) {
         constexpr auto attribId = 0;
         constexpr auto valueId = 1;

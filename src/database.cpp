@@ -83,7 +83,7 @@ void PCCDatabase::InitTable(std::unique_ptr<TTable> &table, size_t detectedVersi
         dataSize = getSizeQuery.value(0).toInt();
 
     bool previouslyInitializedData = true;
-    if(dataSize <= 1 )
+    if(dataSize <= 0 )
     {
         const auto fillData = table->TableInitialData();
 
@@ -150,7 +150,7 @@ void PCCDatabase::InitTable(std::unique_ptr<TTable> &table, size_t detectedVersi
         tableData.append(tableRow);
     }
 
-    table->SetTableData(previouslyInitializedData, std::move(tableData));
+    table->SetTableData(this, previouslyInitializedData, std::move(tableData));
 }
 
 void PCCDatabase::Initialize() {
@@ -163,10 +163,9 @@ void PCCDatabase::Initialize() {
 
         InitTable(_metaInfo, -1);
 
-        InitTable(_unitsTransform, _metaInfo->UnitsTransformInterfaceVersion());
-
         InitTable(_units, _metaInfo->UnitsInterfaceVersion());
-        _units->SetUnitsTransform(_unitsTransform.get());
+
+        InitTable(_unitsTransform, _metaInfo->UnitsTransformInterfaceVersion());
 
         logTask.succeeded();
     }
@@ -195,18 +194,49 @@ PCCDatabase::TExecuteQuery PCCDatabase::ExecuteQuery(QString &&descr, QString qu
     return res;
 }
 
-bool PCCDbTable::DeleteRecord (size_t dbId)
+bool PCCDbTable::DeleteDbRecord (size_t dbId)
 {
     auto logTask = _log.addTask();
     QString queryStr = QString("DELETE FROM %1 WHERE %2 = '%3'"). arg(TableName()). arg(IDFieldName()). arg(dbId);
 
-    auto [result, query] = _db->ExecuteQuery(QString("Delete record from %1 table").arg(TableDescription()), queryStr);
+    auto [result, query] = _db->ExecuteQuery(QString("Delete record from the %1 table").arg(TableDescription()), queryStr);
 
     if (!result) {
-        logError(L"Unable to delete record from table "s, TableName());
+        logError(L"Unable to delete record from a table "s, TableName());
         return false;
     }
 
     logTask.succeeded();
     return true;
+}
+
+bool PCCDbTable::AddRecord(const TMapRecordValue& record)
+{
+    auto logTask = _log.addTask();
+
+    QString fields;
+    QString values;
+    bool firstItem = true;
+    for (const auto &fieldName: record.keys()) {
+        if (!firstItem) {
+            fields += ", ";
+            values += ", ";
+        }
+        firstItem = false;
+        fields += fieldName;
+        values += QString("'%1'"). arg(record[fieldName]);
+    }
+
+    QString queryStr = QString("INSERT INTO %1 (%2) VALUES (%3)"). arg(TableName()). arg(fields). arg(values);
+
+    auto [result, query] = _db->ExecuteQuery(QString("Add record to the %1 table").arg(TableDescription()), queryStr);
+
+    if (!result) {
+        logError(L"Unable to add record to a table "s, TableName());
+        return false;
+    }
+
+    logTask.succeeded();
+    return true;
+
 }

@@ -47,10 +47,12 @@ namespace {
     
     void initQML(QQmlApplicationEngine &engine)
     {
-        QQmlContext *context = engine.rootContext();    // Создаём корневой контекст
+        QQmlContext *context = engine.rootContext();
+
         context->setContextProperty("hasDbError", _db->hasDbError());
         context->setContextProperty("lastDbError", _db->lastDbError());
         context->setContextProperty("PCCUnits", &_db->units());
+        context->setContextProperty("PCCUnitTypesModel", PCCUnits::buildUnitTypesModel());
 
         const QUrl url(QStringLiteral("qrc:/qml/Main.qml"));
         engine.load(url);

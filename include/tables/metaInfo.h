@@ -18,7 +18,7 @@ public:
     const QString &TableDescription() const override;
     const TTableFields &TableFields() const override;
     const TTableData &TableInitialData() const override;
-    void SetTableData(bool previouslyInitializedData, TTableData &&table) override;
+    void SetTableData(PCCDatabase* db, bool previouslyInitializedData, TTableData &&table) override;
     static constexpr size_t MaxInterfaceVersion () { return _maxInterfaceVersion; }
 
     size_t UnitsInterfaceVersion() const            { return _unitsInterfaceVersion; }

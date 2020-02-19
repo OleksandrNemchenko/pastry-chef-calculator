@@ -2,7 +2,6 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Window 2.2
-import QtQuick.Layouts 1.1
 import QtQuick.Controls.Styles 1.4
 
 Item {
@@ -13,12 +12,6 @@ Item {
         Prices,
         Receipts,
         CalcResult
-    }
-
-    enum DbMode {
-        DbInitializing,
-        DbError,
-        DbInitialized
     }
 
     property int dpi: Screen.pixelDensity * 25.4

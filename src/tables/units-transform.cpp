@@ -40,14 +40,14 @@ const PCCDbTable::TTableData &PCCUnitsTransform::TableInitialData() const {
     return initialData;
 }
 
-void PCCUnitsTransform::SetTableData(bool previouslyInitializedData, PCCDbTable::TTableData &&table) {
+void PCCUnitsTransform::SetTableData(PCCDatabase* db, bool previouslyInitializedData, PCCDbTable::TTableData &&table) {
     switch (_currentInterfaceVersion) {
-        case 1 : SetTableDataInterface1 (previouslyInitializedData, std::move (table)); break;
+        case 1 : SetTableDataInterface1 (db, previouslyInitializedData, std::move (table)); break;
         default: assert(false && "Unsupported interface");  break;
     }
 }
 
-void PCCUnitsTransform::SetTableDataInterface1(bool previouslyInitializedData, PCCDbTable::TTableData &&table) {
+void PCCUnitsTransform::SetTableDataInterface1(PCCDatabase* db, bool previouslyInitializedData, PCCDbTable::TTableData &&table) {
     (void) previouslyInitializedData;
 
     for (const TTableRow &row : table) {
@@ -55,17 +55,15 @@ void PCCUnitsTransform::SetTableDataInterface1(bool previouslyInitializedData, P
 
         unitData._dbId = row[0].toUInt();
         unitData._fromValue = row[1].toDouble();
-        unitData._fromUnit = row[2].toInt();
+        unitData._from = row[2].toInt();
         unitData._toValue = row[3].toDouble();
-        unitData._toUnit = row[4].toInt();
-        unitData._from = nullptr;
-        unitData._to = nullptr;
+        unitData._to = row[4].toInt();
 
         _unitsTransform.append(std::move(unitData));
     }
 }
 
-bool PCCUnitsTransform::DeleteField(size_t dbId)
+bool PCCUnitsTransform::DeleteRecord(size_t dbId)
 {
     auto itUnitTransform = std::find_if(_unitsTransform.begin(), _unitsTransform.end(), [dbId](const SUnitTransform& unit) {
         return unit._dbId == dbId;
@@ -77,36 +75,20 @@ bool PCCUnitsTransform::DeleteField(size_t dbId)
 
     _unitsTransform.erase(itUnitTransform);
 
-    if (!DeleteRecord(dbId))
+    if (!DeleteDbRecord(dbId))
         return false;
 
     return true;
 }
 
-void PCCUnitsTransform::SetTransformPointers(uint dbId, SUnitData* from, SUnitData* to)
-{
-    assert(from && to);
-
-    auto itUnitTransform = std::find_if(_unitsTransform.begin(), _unitsTransform.end(), [dbId](const SUnitTransform& unit) {
-        return unit._dbId == dbId;
-    } );
-    if (itUnitTransform == _unitsTransform.end()) {
-        logError(L"Unit transform ID = "s, dbId, L" has not been found"s);
-        return;
-    }
-
-    itUnitTransform->_from = from;
-    itUnitTransform->_to = to;
-}
-
-QJsonArray PCCUnitsTransform::unitTransforms(uint dbFromUnit) const
+QJsonArray PCCUnitsTransform::BuildModel(int dbFromUnit) const
 {
     QJsonArray values;
     int indexUnitTransform = 0;
 
     for (const auto &transform : _unitsTransform) {
 
-        if (transform._fromUnit != dbFromUnit)
+        if (transform._from != dbFromUnit)
             continue;
 
         QJsonObject value;
@@ -115,7 +97,7 @@ QJsonArray PCCUnitsTransform::unitTransforms(uint dbFromUnit) const
         value.insert("idUnitTransform", static_cast<int>(transform._dbId));
         value.insert("thisValue", transform._fromValue);
         value.insert("toValue", transform._toValue);
-        value.insert("toUnitAbbreviation", transform._to->_abbreviaton);
+        value.insert("toUnitAbbreviation", _db->units().Unit(transform._to)._abbreviaton);
 
         values.append(value);
 
@@ -125,14 +107,76 @@ QJsonArray PCCUnitsTransform::unitTransforms(uint dbFromUnit) const
     return values;
 }
 
-void PCCUnitsTransform::DeleteUnitTransforms(uint unitDbId)
+void PCCUnitsTransform::DeleteUnitTransforms(int unitDbId)
 {
     for (auto it = _unitsTransform.begin(); it != _unitsTransform.end();) {
-        if (it->_fromUnit == unitDbId || it->_toUnit == unitDbId) {
-            DeleteRecord(it->_dbId);
+        if (it->_from == unitDbId || it->_to == unitDbId) {
+            DeleteDbRecord(it->_dbId);
             it = _unitsTransform.erase(it);
         }
         else
             ++it;
     }
+}
+
+const SUnitTransform* PCCUnitsTransform::AddTransform(uint idUnitFrom, uint idUnitTo, double fromValue, double toValue)
+{
+    int newDbId = 0;
+
+    if (_unitsTransform.size() >= 1) {
+        newDbId = _unitsTransform.at(0)._dbId;
+
+        for (const auto &transform : _unitsTransform)
+            newDbId = std::max(newDbId, transform._dbId);
+
+        ++newDbId;
+    }
+
+    SUnitTransform transform;
+
+    transform._dbId = newDbId;
+    transform._from = idUnitFrom;
+    transform._to = idUnitTo;
+    transform._fromValue = fromValue;
+    transform._toValue = toValue;
+
+    _unitsTransform.append(std::move(transform));
+
+    TMapRecordValue record;
+    record["ID"] = QString::number(transform._dbId);
+    record["ValueFrom"] = QString::number(transform._fromValue);
+    record["UnitFrom"] = QString::number(transform._from);
+    record["ValueTo"] = QString::number(transform._toValue);
+    record["UnitTo"] = QString::number(transform._to);
+    AddRecord(record);
+
+    _db->units().Refresh();
+
+    return &_unitsTransform.last();
+}
+
+const SUnitTransform& PCCUnitsTransform::UnitTransform(int dbUnit) const
+{
+    return UnitTransformImpl<const SUnitTransform>(_unitsTransform.cbegin(), _unitsTransform.cend(), dbUnit);
+}
+
+SUnitTransform& PCCUnitsTransform::UnitTransform(int dbUnit)
+{
+    return UnitTransformImpl<SUnitTransform>(_unitsTransform.begin(), _unitsTransform.end(), dbUnit);
+}
+
+template<typename TRet, typename TIt>
+/* static */ TRet& PCCUnitsTransform::UnitTransformImpl(TIt begin, TIt end, int dbUnit)
+{
+    auto itUnit = std::find_if(begin, end, [dbUnit](const auto &unit) {
+        return unit._dbId == dbUnit;
+    } );
+    if (itUnit == end) {
+        logError(L"Unable to find unit transform with ID = "s, dbUnit);
+        assert(false);
+        static SUnitTransform dummy;
+        return dummy;
+    }
+
+    return *itUnit;
 }
