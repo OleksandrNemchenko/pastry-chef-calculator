@@ -73,19 +73,8 @@ Rectangle {
         width: common.smallButtonSide
         height: common.smallButtonSide
 
-        MessageDialog {
+        DeleteUnitTransform {
             id: unitTransformDeleteDlg
-            visible: false
-            title: qsTr("Удаление преобразования единиц")
-            text: qsTr("Вы подтверждаете удаление преобразования?\n\"%1\""). arg(description)
-            icon: StandardIcon.Question
-            standardButtons: StandardButton.Yes | StandardButton.No
-
-            onYes: {
-                PCCUnits.unitTransformDelete(idUnit, idUnitTransform)
-                unitTransformModel.clear(unitTransformIndex)
-                unitTransformModel.append(PCCUnits.unitTransforms(idUnit))
-            }
         }
 
         MouseArea {

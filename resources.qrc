@@ -13,6 +13,10 @@
         <file>qml/UnitDelegate.qml</file>
         <file>qml/UnitSection.qml</file>
         <file>qml/UnitTransforms.qml</file>
+        <file>qml/AddUnit.qml</file>
+        <file>qml/AddUnitTransform.qml</file>
+        <file>qml/DeleteUnit.qml</file>
+        <file>qml/DeleteUnitTransform.qml</file>
 
         <file>qml/pics/Units.svg</file>
         <file>qml/pics/Prices.svg</file>

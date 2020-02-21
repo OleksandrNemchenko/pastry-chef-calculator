@@ -61,36 +61,8 @@ Item {
             width: common.smallButtonSide
             height: common.smallButtonSide
 
-            Dialog {
-                visible: false
+            AddUnitTransform {
                 id: unitTransformAddDialog
-                title: qsTr("Добавление нового преобразования")
-
-                GridLayout {
-                    columns: 3
-
-                    Text      { text: qsTr("1-ая величина:") }
-                    TextInput { id: unitFromValue; text: "1" }
-                    Text      { text: abbreviation }
-
-                    Text      { text: qsTr("2-ая величина:") }
-                    TextInput { id: unitToValue; text: "1" }
-                    ComboBox {
-                        id: unitTo
-                        textRole: "title"
-                        validator: DoubleValidator {
-                            bottom: 0
-                        }
-                        model: PCCUnits.unitTransformsToSelection(idUnit)
-                    }
-                }
-
-                standardButtons: StandardButton.Ok | StandardButton.Cancel
-
-                onAccepted: {
-                    PCCUnits.unitTransformAdd(idUnit, unitTo.model[unitTo.currentIndex].unitId, unitFromValue.text, unitToValue.text)
-                    unitTransformModel.update(idUnit)
-                }
             }
 
             MouseArea {
@@ -131,18 +103,8 @@ Item {
             width: common.smallButtonSide
             height: common.smallButtonSide
 
-            MessageDialog {
+            DeleteUnit {
                 id: unitDeleteDlg
-                visible: false
-                title: qsTr("Удаление единицы")
-                text: qsTr("Вы подтверждаете удаление единицы измерения %1 (%2)?"). arg(title). arg(abbreviation)
-                icon: StandardIcon.Question
-                standardButtons: StandardButton.Yes | StandardButton.No
-
-                onYes: {
-                    PCCUnits.unitDelete(idUnit)
-                }
-
             }
 
             MouseArea {

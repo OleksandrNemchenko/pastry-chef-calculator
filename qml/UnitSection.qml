@@ -68,37 +68,14 @@ Item {
             width: common.smallButtonSide
             height: common.smallButtonSide
 
-            Dialog {
-                visible: false
+            AddUnit {
                 id: unitAddDialog
-                title: qsTr("Добавление новой единицы измерения")
-
-                GridLayout {
-                    columns: 2
-
-                    Text {
-                        Layout.columnSpan: 2
-                        Layout.alignment: Qt.AlignHCenter
-                        text: qsTr("%1 : добавление новой единицы"). arg(section)
-                    }
-
-                    Text      { text: qsTr("Название:") }
-                    TextInput { id: unitTitle; text: qsTr("название") }
-
-                    Text      { text: qsTr("Аббревиатура:") }
-                    TextInput { id: unitAbbreviation; text: qsTr("аббревиатура") }
-                }
-
-                standardButtons: StandardButton.Ok | StandardButton.Cancel
-
-                onAccepted: {
-                    PCCUnits.unitAdd(section, unitTitle.text, unitAbbreviation.text)
-                }
             }
 
             MouseArea {
                 anchors.fill: parent
-                onClicked: { unitAddDialog.open()
+                onClicked: {
+                    unitAddDialog.open()
                 }
             }
         }   // Image, unitAddButton
